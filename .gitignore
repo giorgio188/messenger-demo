@@ -5,7 +5,7 @@ target/
 !**/src/test/**/target/
 
 ### secrets ###
-secrets.env
+dev.env
 
 ### STS ###
 .apt_generated
