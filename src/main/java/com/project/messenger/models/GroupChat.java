@@ -3,7 +3,6 @@ package com.project.messenger.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -25,12 +24,10 @@ public class GroupChat {
 
     @NotNull
     @Column(name = "name")
-    @Size(min = 3, max = 60)
     private String name;
 
     @NotNull
     @Column(name = "description")
-    @Size(max = 256)
     private String description;
 
     @NotNull

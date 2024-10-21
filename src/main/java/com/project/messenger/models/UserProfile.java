@@ -1,5 +1,6 @@
 package com.project.messenger.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.project.messenger.models.enums.ProfileStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -62,5 +63,19 @@ public class UserProfile {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<PrivateChat> privateChats;
 
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<PrivateChatFiles> privateChatFiles;
+
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<PrivateChatMessages> privateChatMessages;
+
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<GroupChatFiles> groupChatFiles;
 }

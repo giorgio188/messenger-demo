@@ -19,11 +19,11 @@ public class GroupChatFiles {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "group_chat_id", referencedColumnName = "id")
     private GroupChat groupChat;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "sender_id", referencedColumnName = "id")
     @JsonBackReference
     private UserProfile sender;
