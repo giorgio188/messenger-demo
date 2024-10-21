@@ -78,4 +78,30 @@ public class UserProfile {
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
     @JsonBackReference
     private List<GroupChatFiles> groupChatFiles;
+
+    @OneToMany(mappedBy = "user_id", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<FriendList> userList;
+
+    @OneToMany(mappedBy = "friend_id", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<FriendList> friendList;
+
+    @OneToMany(mappedBy = "group_chat_id", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<GroupChatMembers> groupChatList;
+
+    @OneToMany(mappedBy = "member_id", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<GroupChatMembers> groupChatMembersList;
+
+    @OneToMany(mappedBy = "group_chat_id", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<GroupChatMessages> groupChatMessagesList;
+
+    @OneToMany(mappedBy = "sender_id", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<GroupChatMessages> senderList;
+
+
 }

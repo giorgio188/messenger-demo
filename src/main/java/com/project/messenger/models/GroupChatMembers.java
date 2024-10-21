@@ -20,12 +20,12 @@ public class GroupChatMembers {
     @Column(name = "id")
     private int id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_chat_id", referencedColumnName = "id")
     @JsonBackReference
     private GroupChat groupChat;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", referencedColumnName = "id")
     @JsonBackReference
     private UserProfile member;
