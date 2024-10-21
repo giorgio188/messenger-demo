@@ -20,11 +20,11 @@ public class GroupChatFiles {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "group_chat_id")
+    @JoinColumn(name = "group_chat_id", referencedColumnName = "id")
     private GroupChat groupChat;
 
     @ManyToOne
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "sender_id", referencedColumnName = "id")
     @JsonBackReference
     private UserProfile sender;
 

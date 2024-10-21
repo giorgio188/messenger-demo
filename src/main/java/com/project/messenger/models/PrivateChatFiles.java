@@ -26,7 +26,7 @@ public class PrivateChatFiles {
     private PrivateChat privateChat;
 
     @ManyToOne
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "sender_id", referencedColumnName = "id")
     @JsonBackReference
     private UserProfile sender;
 

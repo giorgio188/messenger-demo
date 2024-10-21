@@ -1,5 +1,6 @@
 package com.project.messenger.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,6 +34,8 @@ public class GroupChat {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-
+    @OneToMany(mappedBy = "groupChat", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<GroupChatFiles> groupChatFiles;
 
 }
