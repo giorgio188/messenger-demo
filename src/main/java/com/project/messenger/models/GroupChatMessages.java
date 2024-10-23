@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @Table(name = "group_chat_messages")
 @RequiredArgsConstructor
-public class GroupChatMessages {
+public class GroupChatMessages implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

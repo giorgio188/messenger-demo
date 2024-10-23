@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,7 +15,8 @@ import java.time.LocalDateTime;
 @Setter
 @RequiredArgsConstructor
 @Table(name = "private_chat_messages")
-public class PrivateChatMessages {
+public class PrivateChatMessages implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
