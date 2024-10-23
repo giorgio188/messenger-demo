@@ -36,7 +36,4 @@ public class FriendList {
     @Column(name = "added_at")
     private LocalDateTime addedAt;
 
-
-
-
 }
