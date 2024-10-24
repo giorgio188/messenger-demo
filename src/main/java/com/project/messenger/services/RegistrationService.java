@@ -1,6 +1,7 @@
 package com.project.messenger.services;
 
 import com.project.messenger.models.UserProfile;
+import com.project.messenger.models.enums.ProfileStatus;
 import com.project.messenger.repositories.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,9 +21,12 @@ public class RegistrationService {
     public void register(UserProfile userProfile) {
         userProfile.setPassword(passwordEncoder.encode(userProfile.getPassword()));
         log.info("Registering user: " + userProfile.getUsername());
+        userProfile.setStatus(ProfileStatus.ONLINE);
         userProfileRepository.save(userProfile);
-
     }
 
-
+    @Transactional
+    public void changePassword(UserProfile userProfile) {
+        userProfile.setPassword(passwordEncoder.encode(userProfile.getPassword()));
+    }
 }
