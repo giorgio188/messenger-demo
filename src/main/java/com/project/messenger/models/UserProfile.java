@@ -10,9 +10,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CurrentTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -63,9 +61,13 @@ public class UserProfile {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "member", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
     @JsonBackReference
-    private List<PrivateChat> privateChats;
+    private List<PrivateChat> privateChatsBySender;
+
+    @OneToMany(mappedBy = "receiver", fetch = FetchType.LAZY)
+    @JsonBackReference
+    private List<PrivateChat> privateChatsByReceiver;
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
     @JsonBackReference
@@ -73,7 +75,7 @@ public class UserProfile {
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
     @JsonBackReference
-    private List<PrivateChatMessages> privateChatMessages;
+    private List<PrivateChatMessage> privateChatMessages;
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
     @JsonBackReference

@@ -30,6 +30,11 @@ public class PrivateChatFiles {
     @JsonBackReference
     private UserProfile sender;
 
+    @ManyToOne
+    @JoinColumn(name = "receiver_id", referencedColumnName = "id")
+    @JsonBackReference
+    private UserProfile receiver;
+
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 

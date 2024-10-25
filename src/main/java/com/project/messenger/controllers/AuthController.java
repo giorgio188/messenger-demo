@@ -6,7 +6,6 @@ import com.project.messenger.models.UserProfile;
 import com.project.messenger.repositories.UserProfileRepository;
 import com.project.messenger.security.JWTUtil;
 import com.project.messenger.services.RegistrationService;
-import com.project.messenger.services.UserProfileDetailsService;
 import com.project.messenger.utils.UserProfileValidator;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -15,13 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.View;
-
 import java.util.Map;
 
 @RestController("/auth")
@@ -34,7 +30,6 @@ public class AuthController {
     private final UserProfileValidator userProfileValidator;
     private final UserProfileRepository userProfileRepository;
     private final ModelMapper modelMapper;
-    private final View error;
 
     @PostMapping("/registration")
     public ResponseEntity<?> performRegistration (@RequestBody RegistrationDTO registrationDTO,
@@ -64,7 +59,5 @@ public class AuthController {
         String token = jwtUtil.generateToken(authDTO.getUsername(), id);
         return ResponseEntity.ok(Map.of("token", token));
     }
-
-
 
 }

@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,10 +21,14 @@ public class PrivateChat {
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "member", referencedColumnName = "id")
+    @JoinColumn(name = "sender_id", referencedColumnName = "id")
     @JsonBackReference
-    private UserProfile member;
+    private UserProfile sender;
 
+    @ManyToOne
+    @JoinColumn(name = "receiver_id", referencedColumnName = "id")
+    @JsonBackReference
+    private UserProfile receiver;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -36,5 +39,5 @@ public class PrivateChat {
 
     @OneToMany(mappedBy = "privateChat", fetch = FetchType.LAZY)
     @JsonBackReference
-    private List<PrivateChatMessages> privateChatMessages;
+    private List<PrivateChatMessage> privateChatMessages;
 }
