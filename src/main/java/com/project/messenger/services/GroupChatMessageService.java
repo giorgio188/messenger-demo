@@ -1,28 +1,132 @@
 package com.project.messenger.services;
 
+import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMessages;
+import com.project.messenger.models.PrivateChatMessage;
+import com.project.messenger.models.UserProfile;
+import com.project.messenger.models.enums.MessageStatus;
+import com.project.messenger.repositories.GroupChatRepository;
+import com.project.messenger.repositories.GroupchatMessagesRepository;
+import com.project.messenger.repositories.UserProfileRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
+@Slf4j
 public class GroupChatMessageService {
 
-    private RedisTemplate<String, GroupChatMessages> redisTemplate;
+    private final UserProfileRepository userProfileRepository;
+    private final UserProfileService userProfileService;
+    private final GroupChatService groupChatService;
+    private final EncryptionService encryptionService;
+    private final GroupchatMessagesRepository groupchatMessagesRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private static final String MESSAGE_CACHE_PREFIX = "group chat messages:";
+    private static final int CACHE_SIZE = 100;
+    private final GroupChatRepository groupChatRepository;
+    private RedisTemplate redisTemplate;
 
-    public void saveMessage(GroupChatMessages message) {
-        String key = "messages:" + message.getGroupChat();
-        redisTemplate.opsForList().rightPush(key, message);
+
+    @Transactional
+    public GroupChatMessages sendMessage(int senderId, int groupChatId, String message) {
+        UserProfile sender = userProfileService.getUserProfile(senderId);
+        GroupChat groupChat = groupChatService.getGroupChat(groupChatId);
+        String encryptedMessage = encryptionService.encrypt(message);
+
+        GroupChatMessages groupChatMessages = new GroupChatMessages();
+        groupChatMessages.setGroupChat(groupChat);
+        groupChatMessages.setSender(sender);
+        groupChatMessages.setMessage(encryptedMessage);
+        groupChatMessages.setSentAt(LocalDateTime.now());
+        groupChatMessages.setStatus(MessageStatus.SENT);
+        GroupChatMessages savedMessage = groupchatMessagesRepository.save(groupChatMessages);
+
+//        Кэш редис
+        savedMessage.setMessage(message);
+        String cacheKey = MESSAGE_CACHE_PREFIX + groupChat.getId();
+        redisTemplate.opsForList().rightPush(cacheKey, savedMessage);
+        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
+
+//        уведомляем о сообщении через вебсокет
+        messagingTemplate.convertAndSend("/topic/groupchat/" + groupChat.getId(), groupChatMessages);
+        return groupChatMessages;
     }
 
-    public List<GroupChatMessages> getMessages(String receiver) {
-        String key = "messages:" + receiver;
-        return redisTemplate.opsForList().range(key, 0, -1)
-                .stream()
-                .collect(Collectors.toList());
+    public List<GroupChatMessages> getGroupChatMessages(int groupChatId) {
+        String cacheKey = MESSAGE_CACHE_PREFIX + groupChatId;
+
+        List<GroupChatMessages> cachedMessages = (List<GroupChatMessages>) redisTemplate.opsForList().range(cacheKey, 0, -1);
+        if (cachedMessages != null && !cachedMessages.isEmpty()) {
+            return cachedMessages;
+        }
+
+        List<GroupChatMessages> messages = groupchatMessagesRepository
+                .findByGroupChatOrderBySentAtDesc(groupChatRepository.findById(groupChatId).get());
+        for (GroupChatMessages message : messages) {
+            String decryptedMessageContent = encryptionService.decrypt(message.getMessage());
+            message.setMessage(decryptedMessageContent);
+
+            if (message.getStatus() == MessageStatus.SENT) {
+                message.setStatus(MessageStatus.READ);
+                groupchatMessagesRepository.save(message);
+            }
+        }
+        redisTemplate.opsForList().rightPushAll(cacheKey, messages);
+        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
+        return messages;
+    }
+
+    @Transactional
+    public void deleteGroupMessage(int messageId) {
+        Optional<GroupChatMessages> messageOptional = groupchatMessagesRepository.findById(messageId);
+        if (messageOptional.isPresent()) {
+            GroupChatMessages message = messageOptional.get();
+            int chatId = message.getGroupChat().getId();
+            groupchatMessagesRepository.deleteById(messageId);
+
+            String cacheKey = MESSAGE_CACHE_PREFIX + chatId;
+            redisTemplate.opsForList().remove(cacheKey, 0, message);
+
+           messagingTemplate.convertAndSend("/topic/groupchat/" + chatId,"Message deleted");
+        } else {
+            throw new EntityNotFoundException("Message with messageId " + messageId + " not found");
+        }
+    }
+
+    @Transactional
+    public GroupChatMessages editGroupMessage(int messageId, String editedMessage) {
+        Optional<GroupChatMessages> groupChatMessage = groupchatMessagesRepository.findById(messageId);
+        if (groupChatMessage.isPresent()) {
+
+            GroupChatMessages message = groupChatMessage.get();
+            int chatId = message.getGroupChat().getId();
+            String encryptedEditedMessage = encryptionService.encrypt(editedMessage);
+            message.setMessage(encryptedEditedMessage);
+            message.setStatus(MessageStatus.EDITED);
+            GroupChatMessages updatedMessage = groupchatMessagesRepository.save(message);
+            updatedMessage.setMessage(editedMessage);
+
+            String cacheKey = MESSAGE_CACHE_PREFIX + chatId;
+            redisTemplate.opsForList().set(cacheKey, redisTemplate.opsForList().indexOf(cacheKey, message), updatedMessage);
+            messagingTemplate.convertAndSend("/topic/groupchat/" + chatId, updatedMessage);
+
+            return updatedMessage;
+        }
+        else {
+            throw new EntityNotFoundException("Message not found with messageId: " + messageId);
+        }
     }
 }
