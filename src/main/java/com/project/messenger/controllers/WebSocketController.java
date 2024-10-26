@@ -21,10 +21,10 @@ public class WebSocketController {
     private SimpMessagingTemplate messagingTemplate;
 
 //    уведомление о прочтении сообщения
-    @MessageMapping("/markAsRead")
-    public void markMessageAsRead(@Payload int messageId) {
-        privateChatMessageService.markMessageAsRead(messageId);
-    }
+//    @MessageMapping("/markAsRead")
+//    public void markMessageAsRead(@Payload int messageId) {
+//        privateChatMessageService.markMessageAsRead(messageId);
+//    }
 
 //    уведомление, что юзер онлайн
     @MessageMapping("/connect")

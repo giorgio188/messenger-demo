@@ -2,6 +2,7 @@ package com.project.messenger.models;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.project.messenger.models.enums.MessageStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -40,4 +41,8 @@ public class GroupChatMessages implements Serializable {
     @NotNull
     @Column(name = "message")
     private String message;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private MessageStatus status;
 }
