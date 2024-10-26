@@ -31,6 +31,8 @@ public class AuthController {
     private final UserProfileRepository userProfileRepository;
     private final ModelMapper modelMapper;
 
+//TODO
+
     @PostMapping("/registration")
     public ResponseEntity<?> performRegistration (@RequestBody RegistrationDTO registrationDTO,
                                                   BindingResult bindingResult) {
@@ -45,7 +47,6 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-
     public ResponseEntity<?> performLogin(
             @RequestBody AuthDTO authDTO) {
         UsernamePasswordAuthenticationToken authToken =
@@ -59,5 +60,7 @@ public class AuthController {
         String token = jwtUtil.generateToken(authDTO.getUsername(), id);
         return ResponseEntity.ok(Map.of("token", token));
     }
+
+//    TODO
 
 }

@@ -8,6 +8,8 @@ import com.project.messenger.repositories.PrivateChatMessageRepository;
 import com.project.messenger.repositories.PrivateChatRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +27,10 @@ public class PrivateChatMessageService {
     private final UserProfileService userProfileService;
     private final EncryptionService encryptionService;
     private final PrivateChatRepository privateChatRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private static final String MESSAGE_CACHE_PREFIX = "messages:";
+    private static final int CACHE_SIZE = 100;
+    private final RedisTemplate redisTemplate;
 
     @Transactional
     public PrivateChatMessage sendMessage(int senderId, int receiverId, String message) {
@@ -40,22 +46,51 @@ public class PrivateChatMessageService {
         privateChatMessage.setSentAt(LocalDateTime.now());
         privateChatMessage.setMessage(encryptedMessage);
         privateChatMessage.setStatus(MessageStatus.SENT);
-        return privateChatMessageRepository.save(privateChatMessage);
+        PrivateChatMessage savedMessage = privateChatMessageRepository.save(privateChatMessage);
+//        кеш редис
+        savedMessage.setMessage(message);
+        String cacheKey = MESSAGE_CACHE_PREFIX + privateChat.getId();
+        redisTemplate.opsForList().rightPush(cacheKey, savedMessage);
+        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
+//        уведомляем о сообщении через вебсокет
+        messagingTemplate.convertAndSendToUser(String.valueOf(receiverId), "/queue/messages", savedMessage);
+        return savedMessage;
     }
 
     public List<PrivateChatMessage> getPrivateChatMessages(int privateChatId) {
+        String cacheKey = MESSAGE_CACHE_PREFIX + privateChatId;
+
+        List<PrivateChatMessage> cachedMessages = (List<PrivateChatMessage>) redisTemplate.opsForList().range(cacheKey, 0, -1);
+        if (cachedMessages != null && !cachedMessages.isEmpty()) {
+            return cachedMessages;
+        }
+
         List<PrivateChatMessage> messages = privateChatMessageRepository
-                .findByPrivateChat(privateChatRepository.findById(privateChatId).get());
+                .findByPrivateChatOrderBySentAtDesc(privateChatRepository.findById(privateChatId).get());
         for (PrivateChatMessage message : messages) {
             String decryptedMessageContent = encryptionService.decrypt(message.getMessage());
             message.setMessage(decryptedMessageContent);
         }
+        redisTemplate.opsForList().rightPushAll(cacheKey, messages);
+        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
         return messages;
     }
 
     @Transactional
     public void deletePrivateMessage(int id) {
-        privateChatMessageRepository.deleteById(id);
+        Optional<PrivateChatMessage> messageOptional = privateChatMessageRepository.findById(id);
+        if (messageOptional.isPresent()) {
+            PrivateChatMessage message = messageOptional.get();
+            int chatId = message.getPrivateChat().getId();
+            privateChatMessageRepository.deleteById(id);
+
+            String cacheKey = MESSAGE_CACHE_PREFIX + chatId;
+            redisTemplate.opsForList().remove(cacheKey, 0, message);
+
+            messagingTemplate.convertAndSendToUser(String.valueOf(message.getReceiver()), "/queue/messages", "Message deleted");
+        } else {
+            throw new EntityNotFoundException("Message with id " + id + " not found");
+        }
     }
 
     @Transactional
@@ -63,14 +98,40 @@ public class PrivateChatMessageService {
         Optional<PrivateChatMessage> privateChatMessage = privateChatMessageRepository.findById(id);
         if (privateChatMessage.isPresent()) {
             PrivateChatMessage message = privateChatMessage.get();
+            int chatId = message.getPrivateChat().getId();
             String encryptedEditedMessage = encryptionService.encrypt(editedMessage);
             message.setMessage(encryptedEditedMessage);
             message.setStatus(MessageStatus.EDITED);
-            return privateChatMessageRepository.save(message);
+            PrivateChatMessage updatedMessage = privateChatMessageRepository.save(message);
+            updatedMessage.setMessage(editedMessage);
+
+            String cacheKey = MESSAGE_CACHE_PREFIX + chatId;
+            redisTemplate.opsForList().set(cacheKey, redisTemplate.opsForList().indexOf(cacheKey, message), updatedMessage);
+            messagingTemplate.convertAndSendToUser(String.valueOf(message.getReceiver().getId()), "/queue/messages", updatedMessage);
+
+            return updatedMessage;
         }
         else {
             throw new EntityNotFoundException("Message not found with id: " + id);
         }
     }
 
+    @Transactional
+    public PrivateChatMessage markMessageAsRead (int id) {
+        Optional<PrivateChatMessage> privateChatMessage = privateChatMessageRepository.findById(id);
+        if (privateChatMessage.isPresent()) {
+            PrivateChatMessage message = privateChatMessage.get();
+            int chatId = message.getPrivateChat().getId();
+            message.setStatus(MessageStatus.READ);
+            PrivateChatMessage updatedMessage = privateChatMessageRepository.save(message);
+
+            String cacheKey = MESSAGE_CACHE_PREFIX + chatId;
+            redisTemplate.opsForList().set(cacheKey, redisTemplate.opsForList().indexOf(cacheKey, message), updatedMessage);
+            messagingTemplate.convertAndSendToUser(String.valueOf(message.getReceiver().getId()), "/queue/messages", updatedMessage);
+
+            return updatedMessage;
+        } else {
+            throw new EntityNotFoundException("Message not found with id: " + id);
+        }
+    }
 }
