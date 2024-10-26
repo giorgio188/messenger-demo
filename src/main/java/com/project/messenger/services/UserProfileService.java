@@ -2,6 +2,7 @@ package com.project.messenger.services;
 
 import com.project.messenger.models.FriendList;
 import com.project.messenger.models.UserProfile;
+import com.project.messenger.models.enums.ProfileStatus;
 import com.project.messenger.repositories.FriendListRepository;
 import com.project.messenger.repositories.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
@@ -67,5 +68,15 @@ public class UserProfileService {
         Optional<UserProfile> friend = userProfileRepository.findById(friendToBeDeleted);
         friendListRepository.deleteByUserIdAndFriendId(userProfile, friend);
         friendListRepository.deleteByUserIdAndFriendId(friend, userProfile);
+    }
+
+    @Transactional
+    public void setUserOnlineStatus(int id, ProfileStatus status) {
+        Optional<UserProfile> userProfile = userProfileRepository.findById(id);
+        if (userProfile.isPresent()) {
+            UserProfile user = userProfile.get();
+            user.setStatus(status);
+            userProfileRepository.save(user);
+        }
     }
 }

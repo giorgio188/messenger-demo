@@ -36,7 +36,7 @@ public class UserProfileValidator implements Validator {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "phoneNumber", "field.required", "Phone number is required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "email", "field.required", "Email is required");
 
-        log.info("Validating of length");
+        log.info("Validating of fields length");
         if (userProfile.getUsername() != null && userProfile.getUsername().length() < 8) {
             errors.rejectValue("username", "field.minlength", "Username must be at least 8 characters long");
         }
@@ -61,7 +61,7 @@ public class UserProfileValidator implements Validator {
         }
 
 
-        log.info("Checking for unique");
+        log.info("Checking for unique fields");
         if (userProfileRepository.existsByUsername(userProfile.getUsername())) {
             errors.rejectValue("username", "field.duplicate", "Username already exists");
         }

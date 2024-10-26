@@ -12,5 +12,5 @@ import java.util.Optional;
 @Repository
 public interface PrivateChatMessageRepository extends JpaRepository<PrivateChatMessage, Integer> {
     List<PrivateChatMessage> findByPrivateChat(PrivateChat privateChat);
-
+    List<PrivateChatMessage> findByPrivateChatOrderBySentAtDesc(PrivateChat privateChat);
 }
