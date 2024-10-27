@@ -61,7 +61,7 @@ public class GroupChatMessageService {
         redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
 
 //        уведомляем о сообщении через вебсокет
-        messagingTemplate.convertAndSend("/topic/groupchat/" + groupChat.getId(), groupChatMessages);
+        messagingTemplate.convertAndSend("/queue/group-chat" + groupChat.getId(), groupChatMessages);
         return groupChatMessages;
     }
 
@@ -100,7 +100,7 @@ public class GroupChatMessageService {
             String cacheKey = MESSAGE_CACHE_PREFIX + chatId;
             redisTemplate.opsForList().remove(cacheKey, 0, message);
 
-           messagingTemplate.convertAndSend("/topic/groupchat/" + chatId,"Message deleted");
+           messagingTemplate.convertAndSend("/queue/group-chat" + chatId,"Message deleted");
         } else {
             throw new EntityNotFoundException("Message with messageId " + messageId + " not found");
         }
@@ -121,7 +121,7 @@ public class GroupChatMessageService {
 
             String cacheKey = MESSAGE_CACHE_PREFIX + chatId;
             redisTemplate.opsForList().set(cacheKey, redisTemplate.opsForList().indexOf(cacheKey, message), updatedMessage);
-            messagingTemplate.convertAndSend("/topic/groupchat/" + chatId, updatedMessage);
+            messagingTemplate.convertAndSend("/queue/group-chat" + chatId, updatedMessage);
 
             return updatedMessage;
         }
