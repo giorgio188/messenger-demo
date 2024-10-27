@@ -7,6 +7,7 @@ import com.project.messenger.services.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -21,10 +22,11 @@ public class WebSocketController {
     private SimpMessagingTemplate messagingTemplate;
 
 //    уведомление о прочтении сообщения
-//    @MessageMapping("/markAsRead")
-//    public void markMessageAsRead(@Payload int messageId) {
-//        privateChatMessageService.markMessageAsRead(messageId);
-//    }
+    @MessageMapping("/markAsRead")
+    @SendTo("/queue/private-chat")
+    public void markMessageAsRead(@Payload int messageId) {
+        privateChatMessageService.markMessageAsRead(messageId);
+    }
 
 //    уведомление, что юзер онлайн
     @MessageMapping("/connect")

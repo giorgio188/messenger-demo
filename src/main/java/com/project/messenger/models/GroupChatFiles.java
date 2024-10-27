@@ -1,6 +1,7 @@
 package com.project.messenger.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.project.messenger.models.enums.FileType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +37,5 @@ public class GroupChatFiles {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", length = 10)
-    private String type;
+    private FileType type;
 }

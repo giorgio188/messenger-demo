@@ -57,6 +57,7 @@ create table group_chat_messages
     group_chat_id int references group_chat (id) on delete cascade,
     sender_id     int references user_profile (id),
     sent_at       timestamp,
+    status          varchar,
     message       text
 );
 create table group_chat_files
