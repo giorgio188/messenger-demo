@@ -22,3 +22,8 @@ spring:
       root: INFO
       org.springframework.web: DEBUG
       org.hibernate: TRACE
+
+  docker:
+    compose:
+      enabled: false
+

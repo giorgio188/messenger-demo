@@ -30,7 +30,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers()
+                        .requestMatchers("/auth/**", "error").permitAll()
+                        .requestMatchers("/private-chat/**")
                         .hasAnyRole("USER")
                         .anyRequest().authenticated()
                 )
