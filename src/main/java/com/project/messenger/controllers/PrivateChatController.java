@@ -1,44 +1,65 @@
 package com.project.messenger.controllers;
 
 import com.project.messenger.models.PrivateChat;
+import com.project.messenger.security.JWTUtil;
 import com.project.messenger.services.PrivateChatService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.view.RedirectView;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/private-chat")
+@RequestMapping("api/private-chat")
+@CrossOrigin(origins = "http://localhost:3000")
 public class PrivateChatController {
 
     private final PrivateChatService privateChatService;
+    private final JWTUtil jwtUtil;
 
-    @GetMapping("/{senderId}/{receiverId}")
-    public ResponseEntity<PrivateChat> getPrivateChat(@PathVariable int senderId, @PathVariable int receiverId) {
-        PrivateChat privateChat = privateChatService.getPrivateChat(senderId, receiverId);
+    // Получение чата по ID
+    @GetMapping("/{privateChatId}")
+    public ResponseEntity<PrivateChat> getPrivateChat(
+            @RequestHeader("Authorization") String token,
+            @PathVariable int privateChatId) throws AccessDeniedException {
+        int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        PrivateChat privateChat = privateChatService.getPrivateChat(privateChatId, senderId);
         return ResponseEntity.ok(privateChat);
     }
 
-    @GetMapping("/chats/{userId}")
-    public ResponseEntity<List<PrivateChat>> getPrivateChatsOfUsers(@PathVariable int userId) {
+    // Получение чата по сендеру и ресиверу (грубо говоря поиск чата)
+    @GetMapping("/find")
+    public ResponseEntity<PrivateChat> getPrivateChatBySenderAndReceiver(
+            @RequestHeader("Authorization") String token,
+            @RequestParam int receiverId) {
+        int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        PrivateChat privateChat = privateChatService.getPrivateChatBySenderAndReceiver(senderId, receiverId);
+        return ResponseEntity.ok(privateChat);
+    }
+
+//    вывод всех чатов юзера
+    @GetMapping()
+    public ResponseEntity<List<PrivateChat>> getPrivateChatsOfUsers(@RequestHeader("Authorization") String token) {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         List<PrivateChat> chats = privateChatService.getAllChatsOfOneUser(userId);
         return ResponseEntity.ok(chats);
     }
 
-    @PostMapping("/{senderId}/{receiverId}")
-    public ResponseEntity<PrivateChat> createPrivateChat(@PathVariable int senderId, @PathVariable int receiverId) {
+
+    @PostMapping("/create")
+    public ResponseEntity<PrivateChat> createPrivateChat(@RequestHeader("Authorization") String token, @RequestParam int receiverId) {
+        int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         privateChatService.createPrivateChat(senderId, receiverId);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{privateChatId}")
-    public RedirectView deletePrivateChat(@PathVariable int privateChatId, RedirectAttributes attributes) {
+    @ResponseStatus(HttpStatus.FOUND)
+    public String deletePrivateChat(@PathVariable int privateChatId) {
         privateChatService.deletePrivateChat(privateChatId);
-        attributes.addFlashAttribute("message", "Chat deleted successfully");
-        return new RedirectView("/private-chats/user/{userId}", true);
+        return "redirect:/all";
     }
 }

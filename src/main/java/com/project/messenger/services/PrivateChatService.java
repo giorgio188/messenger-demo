@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class PrivateChatService {
     private final UserProfileRepository userProfileRepository;
     private final PrivateChatRepository privateChatRepository;
 
-    public PrivateChat getPrivateChat(int senderId, int receiverId) {
+    public PrivateChat getPrivateChatBySenderAndReceiver(int senderId, int receiverId) {
         UserProfile sender = userProfileRepository.findById(senderId).orElse(null);
         UserProfile receiver = userProfileRepository.findById(receiverId).orElse(null);
 
@@ -34,6 +35,36 @@ public class PrivateChatService {
             throw new EntityNotFoundException("Private chat not found");
         }
         return privateChat;
+    }
+
+    public Optional<PrivateChat> getPrivateChatById(int privateChatId) { return privateChatRepository.findById(privateChatId); }
+
+    public PrivateChat getPrivateChat(int chatId, int senderId) throws AccessDeniedException {
+        PrivateChat privateChat = privateChatRepository.findById(chatId)
+                .orElseThrow(() -> new EntityNotFoundException("Private chat not found"));
+
+        if (privateChat.getSender().getId() != senderId &&
+                privateChat.getReceiver().getId() != senderId) {
+            throw new AccessDeniedException("User is not a participant of this chat");
+        }
+        return privateChat;
+    }
+
+    // Метод для получения ID чата по участникам
+    public int getChatId(int senderId, int receiverId) {
+        UserProfile sender = userProfileRepository.findById(senderId)
+                .orElseThrow(() -> new EntityNotFoundException("Sender not found"));
+        UserProfile receiver = userProfileRepository.findById(receiverId)
+                .orElseThrow(() -> new EntityNotFoundException("Receiver not found"));
+
+        PrivateChat privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(sender, receiver);
+        if (privateChat == null) {
+            privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(receiver, sender);
+        }
+        if (privateChat == null) {
+            throw new EntityNotFoundException("Private chat not found");
+        }
+        return privateChat.getId();
     }
 
     public List<PrivateChat> getAllChatsOfOneUser(int id) {

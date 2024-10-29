@@ -23,7 +23,7 @@ public class JWTUtil {
     private String secret;
 
     public String generateToken(String username, int id) {
-        Date expirationDate = Date.from(ZonedDateTime.now().plusMinutes(30).toInstant());
+        Date expirationDate = Date.from(ZonedDateTime.now().plusMinutes(6000).toInstant());
         return JWT.create()
                 .withSubject("User authentication")
                 .withClaim("id", id)

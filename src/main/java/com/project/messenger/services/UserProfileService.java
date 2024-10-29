@@ -12,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -27,6 +26,10 @@ public class UserProfileService {
     public UserProfile getUserProfile(int id) {
         Optional<UserProfile> userProfile = userProfileRepository.findById(id);
         return userProfile.orElse(null);
+    }
+
+    public List<UserProfile> searchUsers(String query) {
+        return userProfileRepository.findByUsernameContainingOrNicknameContaining(query, query);
     }
 
     @Transactional
@@ -52,14 +55,15 @@ public class UserProfileService {
     }
 
 
-    public List<UserProfile> getFriendLists(int userId) {
-        Optional<UserProfile> userProfile = userProfileRepository.findById(userId);
-        List<FriendList> friendsAsUser = friendListRepository.findByUserId(userProfile.get());
-        List<FriendList> friendsAsFriend = friendListRepository.findByFriendId(userProfile.get());
+    public List<UserProfile> getFriendList(int userId) {
+        UserProfile userProfile = userProfileRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        List<FriendList> friendsAsUser = friendListRepository.findByUserId(userProfile);
+        List<FriendList> friendsAsFriend = friendListRepository.findByFriendId(userProfile);
         Set<UserProfile> friendsSet = new HashSet<>();
         friendsAsUser.forEach(friendList -> friendsSet.add(friendList.getFriendId()));
         friendsAsFriend.forEach(friendList -> friendsSet.add(friendList.getUserId()));
-        return friendsSet.stream().collect(Collectors.toList());
+        return new ArrayList<>(friendsSet);
     }
 
     @Transactional
