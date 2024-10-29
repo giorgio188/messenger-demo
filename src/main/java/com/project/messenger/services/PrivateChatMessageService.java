@@ -6,7 +6,6 @@ import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.MessageStatus;
 import com.project.messenger.repositories.PrivateChatMessageRepository;
 import com.project.messenger.repositories.PrivateChatRepository;
-import com.project.messenger.repositories.UserProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -35,51 +34,30 @@ public class PrivateChatMessageService {
 
     @Transactional
     public PrivateChatMessage sendMessage(int senderId, int privateChatId, String message) {
-        // Получаем чат
         PrivateChat privateChat = privateChatRepository.findById(privateChatId)
                 .orElseThrow(() -> new RuntimeException("Чат не найден"));
-
-        // Получаем отправителя и получателя
         UserProfile sender = userProfileService.getUserProfile(senderId);
         UserProfile receiver = privateChat.getSender().getId() == senderId
                 ? privateChat.getReceiver()
                 : privateChat.getSender();
-
-        // Шифруем сообщение
         String encryptedMessage = encryptionService.encrypt(message);
-
-        // Создаем объект сообщения
-        PrivateChatMessage privateChatMessage = new PrivateChatMessage();
-        privateChatMessage.setPrivateChat(privateChat);
-        privateChatMessage.setSender(sender);
-        privateChatMessage.setReceiver(receiver);
-        privateChatMessage.setSentAt(LocalDateTime.now());
-        privateChatMessage.setMessage(encryptedMessage);
-        privateChatMessage.setStatus(MessageStatus.SENT);
-
-        // Сохраняем в базу данных
+        PrivateChatMessage privateChatMessage = new PrivateChatMessage(privateChat, sender, receiver,
+                LocalDateTime.now(), encryptedMessage, MessageStatus.SENT);
         PrivateChatMessage savedMessage = privateChatMessageRepository.save(privateChatMessage);
 
-        // Сохраняем расшифрованное сообщение для отправки
-        savedMessage.setMessage(message);
+        PrivateChatMessage redisMessage = new PrivateChatMessage(savedMessage.getId(), privateChat, sender, receiver,
+                LocalDateTime.now(), message, savedMessage.getStatus());
 
-        // Кэшируем в Redis
         String cacheKey = MESSAGE_CACHE_PREFIX + privateChat.getId();
-        redisTemplate.opsForList().rightPush(cacheKey, savedMessage);
+        redisTemplate.opsForList().rightPush(cacheKey, redisMessage);
         redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
-
-        // Отправляем уведомление через WebSocket
         messagingTemplate.convertAndSendToUser(
                 String.valueOf(receiver.getId()),
                 "/queue/private-chat",
                 savedMessage
         );
-
         return savedMessage;
     }
-
-
-
 
 //    @Transactional
 //    public PrivateChatMessage sendMessage(int senderId, int receiverId, String message) {
@@ -161,14 +139,13 @@ public class PrivateChatMessageService {
             messagingTemplate.convertAndSendToUser(String.valueOf(message.getReceiver().getId()), "/queue/private-chat", updatedMessage);
 
             return updatedMessage;
-        }
-        else {
+        } else {
             throw new EntityNotFoundException("Message not found with messageId: " + messageId);
         }
     }
 
     @Transactional
-    public PrivateChatMessage markMessageAsRead (int id) {
+    public PrivateChatMessage markMessageAsRead(int id) {
         Optional<PrivateChatMessage> privateChatMessage = privateChatMessageRepository.findById(id);
         if (privateChatMessage.isPresent()) {
             PrivateChatMessage message = privateChatMessage.get();

@@ -20,12 +20,6 @@ public class PrivateChatController {
     private final PrivateChatService privateChatService;
     private final JWTUtil jwtUtil;
 
-//    @GetMapping("/{senderId}/{receiverId}")
-//    public ResponseEntity<PrivateChat> getPrivateChat(@PathVariable int senderId, @PathVariable int receiverId) {
-//        PrivateChat privateChat = privateChatService.getPrivateChat(senderId, receiverId);
-//        return ResponseEntity.ok(privateChat);
-//    }
-
     // Получение чата по ID
     @GetMapping("/{privateChatId}")
     public ResponseEntity<PrivateChat> getPrivateChat(

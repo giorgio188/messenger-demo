@@ -3,9 +3,7 @@ package com.project.messenger.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.project.messenger.models.enums.MessageStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -13,8 +11,9 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@RequiredArgsConstructor
 @Table(name = "private_chat_messages")
+@NoArgsConstructor
+@AllArgsConstructor
 public class PrivateChatMessage implements Serializable {
 
     @Id
@@ -46,4 +45,12 @@ public class PrivateChatMessage implements Serializable {
     @Column(name = "status")
     private MessageStatus status;
 
+    public PrivateChatMessage(PrivateChat privateChat, UserProfile sender, UserProfile receiver, LocalDateTime sentAt, String message, MessageStatus status) {
+        this.privateChat = privateChat;
+        this.sender = sender;
+        this.receiver = receiver;
+        this.sentAt = sentAt;
+        this.message = message;
+        this.status = status;
+    }
 }

@@ -29,10 +29,7 @@ public class PrivateChatMessageController {
             @RequestHeader("Authorization") String token,
             @PathVariable int privateChatId,
             @RequestParam String message) throws AccessDeniedException {
-        // Получаем ID отправителя из токена
         int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-
-        // Проверяем, есть ли у пользователя доступ к чату
         PrivateChat chat = privateChatService.getPrivateChat(privateChatId, senderId);
         if (chat == null) {
             throw new AccessDeniedException("У вас нет доступа к этому чату");
