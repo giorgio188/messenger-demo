@@ -24,7 +24,6 @@ import java.util.Optional;
 public class PrivateChatMessageService {
 
     private final PrivateChatMessageRepository privateChatMessageRepository;
-    private final PrivateChatService privateChatService;
     private final UserProfileService userProfileService;
     private final EncryptionService encryptionService;
     private final PrivateChatRepository privateChatRepository;
@@ -32,7 +31,6 @@ public class PrivateChatMessageService {
     private static final String MESSAGE_CACHE_PREFIX = "private chat messages:";
     private static final int CACHE_SIZE = 100;
     private final RedisTemplate redisTemplate;
-    private final UserProfileRepository userProfileRepository;
 
 
     @Transactional

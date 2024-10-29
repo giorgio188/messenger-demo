@@ -21,7 +21,6 @@ public class WebSocketController {
 
     private final PrivateChatMessageService privateChatMessageService;
     private final UserProfileService userProfileService;
-    private SimpMessagingTemplate messagingTemplate;
 
     //    уведомление о прочтении сообщения
     @MessageMapping("/markAsRead")

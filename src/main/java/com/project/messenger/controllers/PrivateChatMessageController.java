@@ -7,8 +7,6 @@ import com.project.messenger.services.PrivateChatMessageService;
 import com.project.messenger.services.PrivateChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,7 +20,6 @@ import java.util.List;
 public class PrivateChatMessageController {
 
     private final PrivateChatMessageService privateChatMessageService;
-    private final SimpMessagingTemplate messagingTemplate;
     private final JWTUtil jwtUtil;
     private final PrivateChatService privateChatService;
 
