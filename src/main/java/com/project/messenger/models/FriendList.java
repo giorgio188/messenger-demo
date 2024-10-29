@@ -21,14 +21,12 @@ public class FriendList {
     @Column(name = "id")
     private int id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    @JsonBackReference
     private UserProfile userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "friend_id", referencedColumnName = "id")
-    @JsonBackReference
     private UserProfile friendId;
 
     @NotNull

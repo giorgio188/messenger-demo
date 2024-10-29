@@ -6,6 +6,7 @@ import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.MessageStatus;
 import com.project.messenger.repositories.PrivateChatMessageRepository;
 import com.project.messenger.repositories.PrivateChatRepository;
+import com.project.messenger.repositories.UserProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -31,14 +32,25 @@ public class PrivateChatMessageService {
     private static final String MESSAGE_CACHE_PREFIX = "private chat messages:";
     private static final int CACHE_SIZE = 100;
     private final RedisTemplate redisTemplate;
+    private final UserProfileRepository userProfileRepository;
+
 
     @Transactional
-    public PrivateChatMessage sendMessage(int senderId, int receiverId, String message) {
+    public PrivateChatMessage sendMessage(int senderId, int privateChatId, String message) {
+        // Получаем чат
+        PrivateChat privateChat = privateChatRepository.findById(privateChatId)
+                .orElseThrow(() -> new RuntimeException("Чат не найден"));
+
+        // Получаем отправителя и получателя
         UserProfile sender = userProfileService.getUserProfile(senderId);
-        UserProfile receiver = userProfileService.getUserProfile(receiverId);
-        PrivateChat privateChat = privateChatService.getPrivateChat(senderId, receiverId);
+        UserProfile receiver = privateChat.getSender().getId() == senderId
+                ? privateChat.getReceiver()
+                : privateChat.getSender();
+
+        // Шифруем сообщение
         String encryptedMessage = encryptionService.encrypt(message);
 
+        // Создаем объект сообщения
         PrivateChatMessage privateChatMessage = new PrivateChatMessage();
         privateChatMessage.setPrivateChat(privateChat);
         privateChatMessage.setSender(sender);
@@ -46,16 +58,55 @@ public class PrivateChatMessageService {
         privateChatMessage.setSentAt(LocalDateTime.now());
         privateChatMessage.setMessage(encryptedMessage);
         privateChatMessage.setStatus(MessageStatus.SENT);
+
+        // Сохраняем в базу данных
         PrivateChatMessage savedMessage = privateChatMessageRepository.save(privateChatMessage);
-//        кеш редис
+
+        // Сохраняем расшифрованное сообщение для отправки
         savedMessage.setMessage(message);
+
+        // Кэшируем в Redis
         String cacheKey = MESSAGE_CACHE_PREFIX + privateChat.getId();
         redisTemplate.opsForList().rightPush(cacheKey, savedMessage);
         redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
-//        уведомляем о сообщении через вебсокет
-        messagingTemplate.convertAndSendToUser(String.valueOf(receiverId), "/queue/private-chat", savedMessage);
+
+        // Отправляем уведомление через WebSocket
+        messagingTemplate.convertAndSendToUser(
+                String.valueOf(receiver.getId()),
+                "/queue/private-chat",
+                savedMessage
+        );
+
         return savedMessage;
     }
+
+
+
+
+//    @Transactional
+//    public PrivateChatMessage sendMessage(int senderId, int receiverId, String message) {
+//        UserProfile sender = userProfileService.getUserProfile(senderId);
+//        UserProfile receiver = userProfileService.getUserProfile(receiverId);
+//        PrivateChat privateChat = privateChatService.getPrivateChatBySenderAndReceiver(senderId, receiverId);
+//        String encryptedMessage = encryptionService.encrypt(message);
+//
+//        PrivateChatMessage privateChatMessage = new PrivateChatMessage();
+//        privateChatMessage.setPrivateChat(privateChat);
+//        privateChatMessage.setSender(sender);
+//        privateChatMessage.setReceiver(receiver);
+//        privateChatMessage.setSentAt(LocalDateTime.now());
+//        privateChatMessage.setMessage(encryptedMessage);
+//        privateChatMessage.setStatus(MessageStatus.SENT);
+//        PrivateChatMessage savedMessage = privateChatMessageRepository.save(privateChatMessage);
+////        кеш редис
+//        savedMessage.setMessage(message);
+//        String cacheKey = MESSAGE_CACHE_PREFIX + privateChat.getId();
+//        redisTemplate.opsForList().rightPush(cacheKey, savedMessage);
+//        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
+////        уведомляем о сообщении через вебсокет
+//        messagingTemplate.convertAndSendToUser(String.valueOf(receiverId), "/queue/private-chat", savedMessage);
+//        return savedMessage;
+//    }
 
     public List<PrivateChatMessage> getPrivateChatMessages(int privateChatId) {
         String cacheKey = MESSAGE_CACHE_PREFIX + privateChatId;

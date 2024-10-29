@@ -2,6 +2,7 @@ package com.project.messenger.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.List;
 @Setter
 @RequiredArgsConstructor
 @Table(name = "private_chat")
+@EqualsAndHashCode
 public class PrivateChat {
 
     @Id
