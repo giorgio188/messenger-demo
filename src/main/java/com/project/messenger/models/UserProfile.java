@@ -1,6 +1,7 @@
 package com.project.messenger.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.messenger.models.enums.ProfileStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -59,6 +60,7 @@ public class UserProfile {
     private String avatarUrl;
 
     @Column(name = "created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)

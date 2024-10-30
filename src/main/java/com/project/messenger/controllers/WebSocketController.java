@@ -62,14 +62,14 @@ public class WebSocketController {
 
         // Отправляем сообщение получателю
         messagingTemplate.convertAndSendToUser(
-                String.valueOf(message.getReceiver().getId()),
+                String.valueOf(message.getReceiver()),
                 "/queue/private-chat",
                 sentMessage
         );
 
         // Отправляем подтверждение отправителю
         messagingTemplate.convertAndSendToUser(
-                String.valueOf(message.getSender().getId()),
+                String.valueOf(message.getSender()),
                 "/queue/message-status",
                 Map.of("messageId", sentMessage.getId(), "status", "SENT")
         );

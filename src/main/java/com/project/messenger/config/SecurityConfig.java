@@ -38,9 +38,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**", "error").permitAll()
-                        .requestMatchers("/api/private-chat/**", "/api/user/**", "/api/user",
-                                "/api/chat/**", "apt/privat-chat", "/apt/friends/**",
-                                "/ws/**")
+                        .requestMatchers("/api/private-chat/**", "/api/user/**",                                "/api/chat/**", "apt/privat-chat",
+                                "/ws/**", "/api/private-message/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
@@ -94,12 +93,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/ws/**", configuration);
 
         return source;
-    }
-
-    @Bean public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
     }
 
 }

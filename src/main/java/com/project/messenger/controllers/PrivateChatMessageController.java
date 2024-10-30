@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/chat")
+@RequestMapping("api/private-message")
 @CrossOrigin(origins = "http://localhost:3000")
 public class PrivateChatMessageController {
 
@@ -34,8 +34,6 @@ public class PrivateChatMessageController {
         if (chat == null) {
             throw new AccessDeniedException("У вас нет доступа к этому чату");
         }
-
-        // Отправляем сообщение
         PrivateChatMessage sentMessage = privateChatMessageService.sendMessage(senderId, privateChatId, message);
         return ResponseEntity.ok(sentMessage);
     }
@@ -66,26 +64,6 @@ public class PrivateChatMessageController {
         PrivateChatMessage updatedMessage = privateChatMessageService.markMessageAsRead(messageId);
         return ResponseEntity.ok(updatedMessage);
     }
-//
-//    @MessageMapping("/private-chat/read")
-//    public void markMessageAsReadWebSocket(@Payload int messageId) {
-//        PrivateChatMessage updatedMessage = privateChatMessageService.markMessageAsRead(messageId);
-//        messagingTemplate.convertAndSendToUser(String.valueOf(updatedMessage.getReceiver().getId()), "/queue/private-chat", updatedMessage);
-//    }
-    //    @MessageMapping("/private-chat/edit")
-//    public void editMessageWebSocket(@Payload PrivateChatMessage message) {
-//        PrivateChatMessage updatedMessage = privateChatMessageService.editPrivateMessage(
-//                message.getId(),
-//                message.getMessage());
-//        messagingTemplate.convertAndSendToUser(String.valueOf(message.getReceiver().getId()), "/queue/private-chat", updatedMessage);
-//    }
-
-//    @MessageMapping("/private-chat/delete")
-//    public void deleteMessageWebSocket(@Payload int messageId) {
-//        privateChatMessageService.deletePrivateMessage(messageId);
-//        messagingTemplate.convertAndSendToUser(String.valueOf(messageId), "/queue/private-chat", "Message deleted");
-//    }
-
 
 //    @PostMapping("/{privateChatId}")
 //    public ResponseEntity<PrivateChatMessage> sendMessage(
@@ -97,12 +75,4 @@ public class PrivateChatMessageController {
 //        return ResponseEntity.ok(sentMessage);
 //    }
 
-//    @MessageMapping("/{privateChatId}")
-//    public void sendMessageWebSocket(@Payload PrivateChatMessage message) {
-//        PrivateChatMessage sentMessage = privateChatMessageService.sendMessage(
-//                message.getSender().getId(),
-//                message.getReceiver().getId(),
-//                message.getMessage());
-//        messagingTemplate.convertAndSendToUser(String.valueOf(message.getReceiver().getId()), "/queue/private-chat", sentMessage);
-//    }
 }

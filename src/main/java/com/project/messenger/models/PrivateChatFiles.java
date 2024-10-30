@@ -1,6 +1,7 @@
 package com.project.messenger.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.messenger.models.enums.FileType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -36,6 +37,7 @@ public class PrivateChatFiles {
     private UserProfile receiver;
 
     @Column(name = "sent_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sentAt;
 
     @Column(name = "file_url")
