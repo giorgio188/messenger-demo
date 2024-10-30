@@ -1,4 +1,6 @@
 package com.project.messenger.config;
+import com.project.messenger.services.UserProfileService;
+import com.project.messenger.utils.WebSocketEventHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -14,7 +16,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/queue/private-chat", "/queue/group-chat", "/queue/status");
+        config.enableSimpleBroker("/queue/private-chat", "/queue/group-chat",
+                "/queue/status", "/topic/user/", "/topic/friends/");
         config.setApplicationDestinationPrefixes("/app");
         config.setUserDestinationPrefix("/user");
     }
@@ -37,5 +40,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public MappingJackson2MessageConverter messageConverter() {
         return new MappingJackson2MessageConverter();
     }
+
 }
 

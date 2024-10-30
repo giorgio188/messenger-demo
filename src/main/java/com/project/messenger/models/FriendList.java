@@ -3,6 +3,7 @@ package com.project.messenger.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @Table(name = "friendlist")
 @RequiredArgsConstructor
+@NoArgsConstructor
 public class FriendList {
 
     @Id
@@ -32,4 +34,9 @@ public class FriendList {
     @Column(name = "added_at")
     private LocalDateTime addedAt;
 
+    public FriendList(UserProfile userId, UserProfile friendId, LocalDateTime addedAt) {
+        this.userId = userId;
+        this.friendId = friendId;
+        this.addedAt = addedAt;
+    }
 }
