@@ -1,6 +1,6 @@
 package com.project.messenger.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.*;
 import com.project.messenger.models.enums.MessageStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Table(name = "private_chat_messages")
 @NoArgsConstructor
 @AllArgsConstructor
-public class PrivateChatMessage implements Serializable {
+public class PrivateChatMessage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,20 +22,27 @@ public class PrivateChatMessage implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "private_chat_id")
-    @JsonBackReference
+    @JsonProperty("privateChatId")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private PrivateChat privateChat;
 
     @ManyToOne
     @JoinColumn(name = "sender_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonProperty("senderId")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private UserProfile sender;
 
     @ManyToOne
     @JoinColumn(name = "receiver_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonProperty("receiverId")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private UserProfile receiver;
 
     @Column(name = "sent_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sentAt;
 
     @Column(name = "message")

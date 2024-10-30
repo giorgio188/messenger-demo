@@ -1,5 +1,9 @@
 package com.project.messenger.config;
+import com.project.messenger.services.UserProfileService;
+import com.project.messenger.utils.WebSocketEventHandler;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -12,7 +16,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/queue/private-chat", "/queue/group-chat", "/queue/status");
+        config.enableSimpleBroker("/queue/private-chat", "/queue/group-chat",
+                "/queue/status", "/topic/user/", "/topic/friends/");
         config.setApplicationDestinationPrefixes("/app");
         config.setUserDestinationPrefix("/user");
     }
@@ -30,5 +35,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .setSendTimeLimit(20 * 1000)     // default 10 * 1000
                 .setSendBufferSizeLimit(512 * 1024); // default 512 * 1024
     }
+
+    @Bean
+    public MappingJackson2MessageConverter messageConverter() {
+        return new MappingJackson2MessageConverter();
+    }
+
 }
 

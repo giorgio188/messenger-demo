@@ -1,11 +1,10 @@
 package com.project.messenger.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,6 +13,7 @@ import java.util.List;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@NoArgsConstructor
 @Table(name = "private_chat")
 @EqualsAndHashCode
 public class PrivateChat {
@@ -33,6 +33,7 @@ public class PrivateChat {
     private UserProfile receiver;
 
     @Column(name = "created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "privateChat", fetch = FetchType.LAZY)
@@ -42,4 +43,10 @@ public class PrivateChat {
     @OneToMany(mappedBy = "privateChat", fetch = FetchType.LAZY)
     @JsonBackReference
     private List<PrivateChatMessage> privateChatMessages;
+
+    public PrivateChat(UserProfile sender, UserProfile receiver, LocalDateTime createdAt) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.createdAt = createdAt;
+    }
 }

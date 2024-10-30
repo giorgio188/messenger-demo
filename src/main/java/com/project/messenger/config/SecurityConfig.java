@@ -3,6 +3,7 @@ package com.project.messenger.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.messenger.services.UserProfileDetailsService;
+import com.project.messenger.services.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +31,7 @@ public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
     private final UserProfileDetailsService userProfileDetailsService;
+    private final UserProfileService userProfileService;
 
     @Bean
     protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -38,21 +40,28 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**", "error").permitAll()
-                        .requestMatchers("/api/private-chat/**", "/api/user/**", "/api/user",
-                                "/api/chat/**", "apt/privat-chat", "/apt/friends/**",
-                                "/ws/**")
+                        .requestMatchers("/api/private-chat/**", "/api/user/**",                                "/api/chat/**", "apt/privat-chat",
+                                "/ws/**", "/api/private-message/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(formLogin -> formLogin
-                        .loginPage("/auth/login")
-                        .loginProcessingUrl("/auth/proc_login")
+                        .loginPage("api/auth/login")
+                        .loginProcessingUrl("api/auth/proc_login")
                         .defaultSuccessUrl("/index", true)
                         .failureUrl("/auth/login?error")
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/auth/logout")
-                        .logoutSuccessUrl("/auth/login?logout")
+                        .logoutUrl("/api/auth/logout")
+                        .addLogoutHandler((request, response, authentication) -> {
+                            if (authentication != null) {
+                                String userId = authentication.getName();
+                                userProfileService.handleLogout(Integer.parseInt(userId));
+                            }
+                        })
+                        .logoutSuccessUrl("/login")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                 )
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -94,12 +103,6 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/ws/**", configuration);
 
         return source;
-    }
-
-    @Bean public ObjectMapper objectMapper() {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        return mapper;
     }
 
 }
