@@ -42,7 +42,7 @@ public class PrivateChatController {
 
 //    вывод всех чатов юзера
     @GetMapping()
-    public ResponseEntity<List<PrivateChat>> getPrivateChatsOfUsers(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<PrivateChat>> getPrivateChatsOfUser(@RequestHeader("Authorization") String token) {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         List<PrivateChat> chats = privateChatService.getAllChatsOfOneUser(userId);
         return ResponseEntity.ok(chats);

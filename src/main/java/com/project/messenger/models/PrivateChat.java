@@ -1,8 +1,6 @@
 package com.project.messenger.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,7 +10,6 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@RequiredArgsConstructor
 @NoArgsConstructor
 @Table(name = "private_chat")
 @EqualsAndHashCode
@@ -24,12 +21,14 @@ public class PrivateChat {
 
     @ManyToOne
     @JoinColumn(name = "sender_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private UserProfile sender;
 
     @ManyToOne
     @JoinColumn(name = "receiver_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private UserProfile receiver;
 
     @Column(name = "created_at")

@@ -41,8 +41,6 @@ public class PrivateChatService {
         return privateChat;
     }
 
-    public Optional<PrivateChat> getPrivateChatById(int privateChatId) { return privateChatRepository.findById(privateChatId); }
-
     public PrivateChat getPrivateChat(int chatId, int senderId) throws AccessDeniedException {
         PrivateChat privateChat = privateChatRepository.findById(chatId)
                 .orElseThrow(() -> new EntityNotFoundException("Private chat not found"));

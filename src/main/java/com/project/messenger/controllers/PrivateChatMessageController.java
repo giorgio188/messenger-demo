@@ -51,9 +51,9 @@ public class PrivateChatMessageController {
     }
 
 
-    @PatchMapping()
+    @PatchMapping("/{messageId}")
     public ResponseEntity<PrivateChatMessage> editPrivateMessage(
-            @RequestParam int messageId,
+            @PathVariable int messageId,
             @RequestParam String editedMessage) {
         PrivateChatMessage updatedMessage = privateChatMessageService.editPrivateMessage(messageId, editedMessage);
         return ResponseEntity.ok(updatedMessage);
