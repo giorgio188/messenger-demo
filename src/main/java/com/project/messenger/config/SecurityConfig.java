@@ -40,19 +40,19 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**", "error").permitAll()
-                        .requestMatchers("/api/private-chat/**", "/api/user/**",                                "/api/chat/**", "apt/privat-chat",
+                        .requestMatchers("/api/private-chat/**", "/api/user/**",
                                 "/ws/**", "/api/private-message/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(formLogin -> formLogin
-                        .loginPage("api/auth/login")
-                        .loginProcessingUrl("api/auth/proc_login")
+                        .loginPage("/auth/login")
+                        .loginProcessingUrl("/auth/proc_login")
                         .defaultSuccessUrl("/index", true)
                         .failureUrl("/auth/login?error")
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")
+                        .logoutUrl("/auth/logout")
                         .addLogoutHandler((request, response, authentication) -> {
                             if (authentication != null) {
                                 String userId = authentication.getName();

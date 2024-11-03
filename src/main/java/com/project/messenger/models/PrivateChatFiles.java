@@ -40,7 +40,7 @@ public class PrivateChatFiles {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sentAt;
 
-    @Column(name = "file_url")
+    @Column(name = "file")
     private String fileUrl;
 
     @Enumerated(EnumType.STRING)

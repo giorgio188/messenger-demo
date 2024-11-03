@@ -42,9 +42,7 @@ public class PrivateChatController {
 
 //    вывод всех чатов юзера
     @GetMapping()
-    public ResponseEntity<List<PrivateChat>> getPrivateChatsOfUsers(
-            @RequestHeader("Authorization") String token
-    ) {
+    public ResponseEntity<List<PrivateChat>> getPrivateChatsOfUser(@RequestHeader("Authorization") String token) {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         List<PrivateChat> chats = privateChatService.getAllChatsOfOneUser(userId);
         return ResponseEntity.ok(chats);
@@ -52,10 +50,7 @@ public class PrivateChatController {
 
 
     @PostMapping("/create")
-    public ResponseEntity<PrivateChat> createPrivateChat(
-            @RequestHeader("Authorization") String token,
-            @RequestParam int receiverId
-    ) {
+    public ResponseEntity<PrivateChat> createPrivateChat(@RequestHeader("Authorization") String token, @RequestParam int receiverId) {
         int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         privateChatService.createPrivateChat(senderId, receiverId);
         return ResponseEntity.noContent().build();

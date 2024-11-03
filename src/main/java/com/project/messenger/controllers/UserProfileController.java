@@ -2,13 +2,16 @@ package com.project.messenger.controllers;
 
 import com.project.messenger.dto.UserProfileDTO;
 import com.project.messenger.models.UserProfile;
+import com.project.messenger.repositories.UserProfileRepository;
 import com.project.messenger.security.JWTUtil;
+import com.project.messenger.services.S3Service;
 import com.project.messenger.services.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -22,6 +25,7 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
     private final JWTUtil jwtUtil;
     private final ModelMapper modelMapper;
+    private final UserProfileRepository userProfileRepository;
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfile> getUserProfile(@PathVariable int userId) {
@@ -35,9 +39,6 @@ public class UserProfileController {
         UserProfile userProfile = userProfileService.getUserProfile(userId);
         return ResponseEntity.ok(userProfile);
     }
-
-
-
 
     @PatchMapping("/update")
     public ResponseEntity<UserProfile> updateUserProfile(@RequestBody UserProfileDTO userProfileDTO,
@@ -66,6 +67,38 @@ public class UserProfileController {
     @GetMapping("/search") public ResponseEntity<List<UserProfile>> searchUsers(@RequestParam String query) {
         List<UserProfile> searchResults = userProfileService.searchUsers(query);
         return ResponseEntity.ok(searchResults);
+    }
+
+    @PostMapping("/avatar")
+    public ResponseEntity<?> addUserAvatar(@RequestHeader("Authorization") String token,
+                                                     @RequestParam MultipartFile file) {
+        try {
+            String getExtension = file.getContentType();
+            if (getExtension == null || !getExtension.startsWith("image/")) {
+                return ResponseEntity.badRequest().body("You can upload only image as avatar");
+            }
+            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+            String avatarURL = userProfileService.uploadAvatar(userId, file);
+            return ResponseEntity.ok(avatarURL);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Could not upload avatar");
+        }
+    }
+
+    @DeleteMapping("/avatar")
+    public ResponseEntity<?> deleteUserAvatar(@RequestHeader("Authorization") String token) {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        userProfileService.deleteAvatar(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/avatar")
+    public ResponseEntity<?> getUserAvatarLink(@RequestHeader("Authorization") String token) {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
+        String avatarLink = userProfileService.getAvatarLink(avatarFileName);
+        return ResponseEntity.ok(avatarLink);
     }
 
 //    месседж маппинг?

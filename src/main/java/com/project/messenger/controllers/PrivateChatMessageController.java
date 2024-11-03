@@ -51,19 +51,19 @@ public class PrivateChatMessageController {
     }
 
 
-    @PatchMapping()
+    @PatchMapping("/{messageId}")
     public ResponseEntity<PrivateChatMessage> editPrivateMessage(
-            @RequestParam int messageId,
+            @PathVariable int messageId,
             @RequestParam String editedMessage) {
         PrivateChatMessage updatedMessage = privateChatMessageService.editPrivateMessage(messageId, editedMessage);
         return ResponseEntity.ok(updatedMessage);
     }
 
-    @PatchMapping("/{messageId}/read")
-    public ResponseEntity<PrivateChatMessage> markMessageAsRead(@PathVariable int messageId) {
-        PrivateChatMessage updatedMessage = privateChatMessageService.markMessageAsRead(messageId);
-        return ResponseEntity.ok(updatedMessage);
-    }
+//    @PatchMapping("/{messageId}/read")
+//    public ResponseEntity<PrivateChatMessage> markMessageAsRead(@PathVariable int messageId) {
+//        PrivateChatMessage updatedMessage = privateChatMessageService.markMessageAsRead(messageId);
+//        return ResponseEntity.ok(updatedMessage);
+//    }
 
 //    @PostMapping("/{privateChatId}")
 //    public ResponseEntity<PrivateChatMessage> sendMessage(

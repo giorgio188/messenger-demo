@@ -16,7 +16,7 @@ import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Map;
 
-@RequestMapping("/group-chat")
+@RequestMapping("api/group-chat")
 @RestController
 @RequiredArgsConstructor
 public class GroupChatController {
@@ -64,7 +64,7 @@ public class GroupChatController {
         return "redirect:/all";
     }
 
-    @PatchMapping("/edit-descrip/{groupChatId}}")
+    @PatchMapping("/{groupChatId}}/edit-descrip")
     public ResponseEntity<GroupChat> editGroupChatDescription(
             @PathVariable int groupChatId,
             @RequestParam String newDesc
@@ -73,7 +73,7 @@ public class GroupChatController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/edit-name/{groupChatId}")
+    @PatchMapping("/{groupChatId}/edit-name")
     public ResponseEntity<GroupChat> editGroupChatName(
             @PathVariable int groupChatId,
             @RequestParam String newName
@@ -82,7 +82,7 @@ public class GroupChatController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/delete-user/{groupChatId}")
+    @PatchMapping("/{groupChatId}/delete-user")
     public ResponseEntity<GroupChat> deleteUser(
             @PathVariable int groupChatId,
             @RequestParam int userId

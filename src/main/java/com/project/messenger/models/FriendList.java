@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Table(name = "friendlist")
-@RequiredArgsConstructor
 @NoArgsConstructor
 public class FriendList {
 
