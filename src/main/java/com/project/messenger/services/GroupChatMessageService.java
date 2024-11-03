@@ -43,12 +43,14 @@ public class GroupChatMessageService {
         GroupChat groupChat = groupChatService.getGroupChat(groupChatId, senderId);
         String encryptedMessage = encryptionService.encrypt(message);
 
-        GroupChatMessage groupChatMessage = new GroupChatMessage();
-        groupChatMessage.setGroupChat(groupChat);
-        groupChatMessage.setSender(sender);
-        groupChatMessage.setMessage(encryptedMessage);
-        groupChatMessage.setSentAt(LocalDateTime.now());
-        groupChatMessage.setStatus(MessageStatus.SENT);
+        GroupChatMessage groupChatMessage = new GroupChatMessage(
+                groupChat,
+                sender,
+                LocalDateTime.now(),
+                encryptedMessage,
+                MessageStatus.SENT
+        );
+
         GroupChatMessage savedMessage = groupchatMessagesRepository.save(groupChatMessage);
 
 //        Кэш редис

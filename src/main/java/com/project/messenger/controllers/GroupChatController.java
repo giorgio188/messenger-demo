@@ -91,4 +91,13 @@ public class GroupChatController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/{groupChatId}/add-user")
+    public ResponseEntity<GroupChat> addUser(
+            @PathVariable int groupChatId,
+            @RequestParam int userId
+    ) {
+        groupChatService.addUser(groupChatId, userId, Roles.MEMBER);
+        return ResponseEntity.ok().build();
+    }
+
 }
