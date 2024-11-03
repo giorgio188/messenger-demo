@@ -1,8 +1,7 @@
 package com.project.messenger.services;
 
 import com.project.messenger.models.GroupChat;
-import com.project.messenger.models.GroupChatMessages;
-import com.project.messenger.models.PrivateChatMessage;
+import com.project.messenger.models.GroupChatMessage;
 import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.MessageStatus;
 import com.project.messenger.repositories.GroupChatRepository;
@@ -11,7 +10,6 @@ import com.project.messenger.repositories.UserProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -20,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,18 +38,18 @@ public class GroupChatMessageService {
 
 
     @Transactional
-    public GroupChatMessages sendMessage(int senderId, int groupChatId, String message) {
+    public GroupChatMessage sendMessage(int senderId, int groupChatId, String message) {
         UserProfile sender = userProfileService.getUserProfile(senderId);
         GroupChat groupChat = groupChatService.getGroupChat(groupChatId);
         String encryptedMessage = encryptionService.encrypt(message);
 
-        GroupChatMessages groupChatMessages = new GroupChatMessages();
-        groupChatMessages.setGroupChat(groupChat);
-        groupChatMessages.setSender(sender);
-        groupChatMessages.setMessage(encryptedMessage);
-        groupChatMessages.setSentAt(LocalDateTime.now());
-        groupChatMessages.setStatus(MessageStatus.SENT);
-        GroupChatMessages savedMessage = groupchatMessagesRepository.save(groupChatMessages);
+        GroupChatMessage groupChatMessage = new GroupChatMessage();
+        groupChatMessage.setGroupChat(groupChat);
+        groupChatMessage.setSender(sender);
+        groupChatMessage.setMessage(encryptedMessage);
+        groupChatMessage.setSentAt(LocalDateTime.now());
+        groupChatMessage.setStatus(MessageStatus.SENT);
+        GroupChatMessage savedMessage = groupchatMessagesRepository.save(groupChatMessage);
 
 //        Кэш редис
         savedMessage.setMessage(message);
@@ -61,21 +58,21 @@ public class GroupChatMessageService {
         redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
 
 //        уведомляем о сообщении через вебсокет
-        messagingTemplate.convertAndSend("/queue/group-chat" + groupChat.getId(), groupChatMessages);
-        return groupChatMessages;
+        messagingTemplate.convertAndSend("/queue/group-chat" + groupChat.getId(), groupChatMessage);
+        return groupChatMessage;
     }
 
-    public List<GroupChatMessages> getGroupChatMessages(int groupChatId) {
+    public List<GroupChatMessage> getGroupChatMessages(int groupChatId) {
         String cacheKey = MESSAGE_CACHE_PREFIX + groupChatId;
 
-        List<GroupChatMessages> cachedMessages = (List<GroupChatMessages>) redisTemplate.opsForList().range(cacheKey, 0, -1);
+        List<GroupChatMessage> cachedMessages = (List<GroupChatMessage>) redisTemplate.opsForList().range(cacheKey, 0, -1);
         if (cachedMessages != null && !cachedMessages.isEmpty()) {
             return cachedMessages;
         }
 
-        List<GroupChatMessages> messages = groupchatMessagesRepository
+        List<GroupChatMessage> messages = groupchatMessagesRepository
                 .findByGroupChatOrderBySentAtDesc(groupChatRepository.findById(groupChatId).get());
-        for (GroupChatMessages message : messages) {
+        for (GroupChatMessage message : messages) {
             String decryptedMessageContent = encryptionService.decrypt(message.getMessage());
             message.setMessage(decryptedMessageContent);
 
@@ -91,9 +88,9 @@ public class GroupChatMessageService {
 
     @Transactional
     public void deleteGroupMessage(int messageId) {
-        Optional<GroupChatMessages> messageOptional = groupchatMessagesRepository.findById(messageId);
+        Optional<GroupChatMessage> messageOptional = groupchatMessagesRepository.findById(messageId);
         if (messageOptional.isPresent()) {
-            GroupChatMessages message = messageOptional.get();
+            GroupChatMessage message = messageOptional.get();
             int chatId = message.getGroupChat().getId();
             groupchatMessagesRepository.deleteById(messageId);
 
@@ -107,16 +104,16 @@ public class GroupChatMessageService {
     }
 
     @Transactional
-    public GroupChatMessages editGroupMessage(int messageId, String editedMessage) {
-        Optional<GroupChatMessages> groupChatMessage = groupchatMessagesRepository.findById(messageId);
+    public GroupChatMessage editGroupMessage(int messageId, String editedMessage) {
+        Optional<GroupChatMessage> groupChatMessage = groupchatMessagesRepository.findById(messageId);
         if (groupChatMessage.isPresent()) {
 
-            GroupChatMessages message = groupChatMessage.get();
+            GroupChatMessage message = groupChatMessage.get();
             int chatId = message.getGroupChat().getId();
             String encryptedEditedMessage = encryptionService.encrypt(editedMessage);
             message.setMessage(encryptedEditedMessage);
             message.setStatus(MessageStatus.EDITED);
-            GroupChatMessages updatedMessage = groupchatMessagesRepository.save(message);
+            GroupChatMessage updatedMessage = groupchatMessagesRepository.save(message);
             updatedMessage.setMessage(editedMessage);
 
             String cacheKey = MESSAGE_CACHE_PREFIX + chatId;

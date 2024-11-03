@@ -9,6 +9,7 @@ import com.project.messenger.repositories.GroupChatRepository;
 import com.project.messenger.repositories.UserProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,8 +52,16 @@ public class GroupChatService {
     }
 
 
-    public GroupChat getGroupChat(int groupChatId) {
-        return groupChatRepository.findById(groupChatId).get();
+    public GroupChat getGroupChat(int groupChatId, int memberId) throws AccessDeniedException {
+        GroupChat groupChat = groupChatRepository.findById(groupChatId)
+                .orElseThrow(() -> new EntityNotFoundException("GroupChat not found"));
+        if (groupChat.getGroupChatMembers().contains(memberId)) {
+            return groupChat;
+
+        } else {
+            throw new AccessDeniedException("User is not a participant of this chat");
+        }
+
     }
 
     @Transactional
@@ -83,6 +92,11 @@ public class GroupChatService {
         return members.stream()
                 .map(GroupChatMembers::getGroupChat)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteGroupChat(int groupChatId) {
+        groupChatRepository.deleteById(groupChatId);
     }
 }
 
