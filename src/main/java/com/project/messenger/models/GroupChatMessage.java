@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Setter
 @Table(name = "group_chat_messages")
 @RequiredArgsConstructor
-public class GroupChatMessages implements Serializable {
+public class GroupChatMessage implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

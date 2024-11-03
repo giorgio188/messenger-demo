@@ -43,7 +43,7 @@ public class GroupChat {
 
     @OneToMany(mappedBy = "groupChat", fetch = FetchType.LAZY)
     @JsonBackReference
-    private List<GroupChatMessages> groupChatMessages;
+    private List<GroupChatMessage> groupChatMessages;
 
     @OneToMany(mappedBy = "groupChat", fetch = FetchType.LAZY)
     @JsonBackReference

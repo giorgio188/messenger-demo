@@ -97,7 +97,7 @@ public class UserProfile {
 
     @OneToMany(mappedBy = "sender", fetch = FetchType.LAZY)
     @JsonBackReference
-    private List<GroupChatMessages> senderList;
+    private List<GroupChatMessage> senderList;
 
 
 }
