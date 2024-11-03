@@ -64,5 +64,31 @@ public class GroupChatController {
         return "redirect:/all";
     }
 
+    @PatchMapping("/edit-descrip/{groupChatId}}")
+    public ResponseEntity<GroupChat> editGroupChatDescription(
+            @PathVariable int groupChatId,
+            @RequestParam String newDesc
+    ) {
+        groupChatService.editDescription(groupChatId, newDesc);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/edit-name/{groupChatId}")
+    public ResponseEntity<GroupChat> editGroupChatName(
+            @PathVariable int groupChatId,
+            @RequestParam String newName
+    ) {
+        groupChatService.editName(groupChatId, newName);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/delete-user/{groupChatId}")
+    public ResponseEntity<GroupChat> deleteUser(
+            @PathVariable int groupChatId,
+            @RequestParam int userId
+    ) {
+        groupChatService.deleteUser(groupChatId, userId);
+        return ResponseEntity.ok().build();
+    }
 
 }
