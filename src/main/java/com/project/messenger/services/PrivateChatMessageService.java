@@ -43,10 +43,10 @@ public class PrivateChatMessageService {
         String encryptedMessage = encryptionService.encrypt(message);
         PrivateChatMessage privateChatMessage = new PrivateChatMessage(privateChat, sender, receiver,
                 LocalDateTime.now(), encryptedMessage, MessageStatus.SENT);
-        PrivateChatMessage savedMessage = privateChatMessageRepository.save(privateChatMessage);
+        privateChatMessageRepository.save(privateChatMessage);
 
-        PrivateChatMessage redisMessage = new PrivateChatMessage(savedMessage.getId(), privateChat, sender, receiver,
-                LocalDateTime.now(), message, savedMessage.getStatus());
+        PrivateChatMessage redisMessage = new PrivateChatMessage(privateChatMessage.getId(), privateChat, sender, receiver,
+                LocalDateTime.now(), message, privateChatMessage.getStatus());
 
         String cacheKey = MESSAGE_CACHE_PREFIX + privateChat.getId();
         redisTemplate.opsForList().rightPush(cacheKey, redisMessage);
@@ -54,9 +54,9 @@ public class PrivateChatMessageService {
         messagingTemplate.convertAndSendToUser(
                 String.valueOf(receiver.getId()),
                 "/queue/private-chat",
-                savedMessage
+                privateChatMessage
         );
-        return savedMessage;
+        return privateChatMessage;
     }
 
 //    @Transactional
