@@ -40,7 +40,7 @@ public class GroupChatMessageService {
     @Transactional
     public GroupChatMessage sendMessage(int senderId, int groupChatId, String message) {
         UserProfile sender = userProfileService.getUserProfile(senderId);
-        GroupChat groupChat = groupChatService.getGroupChat(groupChatId);
+        GroupChat groupChat = groupChatService.getGroupChat(groupChatId, senderId);
         String encryptedMessage = encryptionService.encrypt(message);
 
         GroupChatMessage groupChatMessage = new GroupChatMessage();

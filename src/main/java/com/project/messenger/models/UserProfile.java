@@ -56,8 +56,8 @@ public class UserProfile {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "avatar_url")
-    private String avatarUrl;
+    @Column(name = "avatar")
+    private String avatar;
 
     @Column(name = "created_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")

@@ -19,8 +19,6 @@ public class EncryptionConfig {
         Dotenv dotenv = Dotenv.configure().load();
         String password = dotenv.get("ENCRYPTION_PASSWORD");
         String salt = dotenv.get("ENCRYPTION_SALT");
-        System.out.println("Encryption password: " + password);
-        System.out.println("Encryption salt: " + salt);
         return Encryptors.text(password, salt);
     }
 }

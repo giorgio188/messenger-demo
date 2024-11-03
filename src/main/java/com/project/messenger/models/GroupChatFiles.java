@@ -32,7 +32,7 @@ public class GroupChatFiles {
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
-    @Column(name = "file_url")
+    @Column(name = "file")
     private String fileUrl;
 
     @Enumerated(EnumType.STRING)

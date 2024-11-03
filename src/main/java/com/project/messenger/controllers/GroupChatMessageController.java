@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 
-@RequestMapping("api/group-messege")
+@RequestMapping("api/group-message")
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000")
@@ -52,15 +52,13 @@ public class GroupChatMessageController {
         return ResponseEntity.ok("Message deleted");
     }
 
-    @PatchMapping()
+    @PatchMapping("/{MessageId}")
     public ResponseEntity<GroupChatMessage> editMessage(
-            @RequestParam int messageId,
+            @PathVariable int messageId,
             @RequestParam String editedTextMessage
     ) {
         GroupChatMessage updatedMessage = groupChatMessageService.editGroupMessage(messageId, editedTextMessage);
         return ResponseEntity.ok(updatedMessage);
     }
-
-
 
 }
