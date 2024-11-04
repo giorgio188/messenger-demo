@@ -13,5 +13,6 @@ public interface GroupChatMembersRepository extends JpaRepository<GroupChatMembe
 
     GroupChatMembers findByGroupChatAndMember(GroupChat groupChatId, UserProfile member);
     List<GroupChatMembers> findByMember(UserProfile member);
+    GroupChatMembers deleteGroupChatByGroupChatAndUserProfile(GroupChat groupChat, UserProfile member);
 
 }
