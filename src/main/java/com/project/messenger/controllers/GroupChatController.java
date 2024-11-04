@@ -2,6 +2,7 @@ package com.project.messenger.controllers;
 
 import com.project.messenger.dto.GroupChatDTO;
 import com.project.messenger.models.GroupChat;
+import com.project.messenger.models.GroupChatMembers;
 import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.Roles;
 import com.project.messenger.security.JWTUtil;
@@ -98,6 +99,14 @@ public class GroupChatController {
     ) {
         groupChatService.addUser(groupChatId, userId, Roles.MEMBER);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/members/{groupChatId}")
+    public ResponseEntity<List<GroupChatMembers>> getGroupChatMembers(
+            @PathVariable int groupChatId
+    ) {
+        List<GroupChatMembers>  members =  groupChatService.getAllGroupChatMembersByGroupChat(groupChatId);
+        return ResponseEntity.ok(members);
     }
 
 }
