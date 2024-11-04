@@ -1,4 +1,4 @@
-package com.project.messenger.services;
+package com.project.messenger.services.groupChat;
 
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMessage;
@@ -7,6 +7,8 @@ import com.project.messenger.models.enums.MessageStatus;
 import com.project.messenger.repositories.GroupChatRepository;
 import com.project.messenger.repositories.GroupchatMessagesRepository;
 import com.project.messenger.repositories.UserProfileRepository;
+import com.project.messenger.services.EncryptionService;
+import com.project.messenger.services.UserProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

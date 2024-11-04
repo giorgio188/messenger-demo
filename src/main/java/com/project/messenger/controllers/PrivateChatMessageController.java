@@ -3,11 +3,10 @@ package com.project.messenger.controllers;
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.models.PrivateChatMessage;
 import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.PrivateChatMessageService;
-import com.project.messenger.services.PrivateChatService;
+import com.project.messenger.services.privateChat.PrivateChatMessageService;
+import com.project.messenger.services.privateChat.PrivateChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;

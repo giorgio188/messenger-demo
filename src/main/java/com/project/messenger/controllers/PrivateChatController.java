@@ -2,7 +2,7 @@ package com.project.messenger.controllers;
 
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.PrivateChatService;
+import com.project.messenger.services.privateChat.PrivateChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

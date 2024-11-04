@@ -1,4 +1,4 @@
-package com.project.messenger.services;
+package com.project.messenger.services.groupChat;
 
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMembers;
@@ -7,6 +7,7 @@ import com.project.messenger.models.enums.Roles;
 import com.project.messenger.repositories.GroupChatMembersRepository;
 import com.project.messenger.repositories.GroupChatRepository;
 import com.project.messenger.repositories.UserProfileRepository;
+import com.project.messenger.services.UserProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -106,7 +107,7 @@ public class GroupChatService {
             groupChatRepository.deleteById(groupChatId);
             List<GroupChatMembers> members = getAllGroupChatMembersByGroupChat(groupChatId);
             groupChatMembersRepository.deleteGroupChatMembersByGroupChat(groupChatRepository.findById(groupChatId).get());
-        }
+        } else throw new AccessDeniedException("User is not an admin of this chat");
     }
 
     public List<GroupChatMembers> getAllGroupChatMembersByGroupChat(int groupChatId) {
