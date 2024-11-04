@@ -1,4 +1,4 @@
-package com.project.messenger.controllers;
+package com.project.messenger.controllers.privateChat;
 
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.security.JWTUtil;
