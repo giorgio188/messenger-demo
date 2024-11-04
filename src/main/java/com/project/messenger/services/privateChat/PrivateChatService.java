@@ -1,4 +1,4 @@
-package com.project.messenger.services;
+package com.project.messenger.services.privateChat;
 
 import com.project.messenger.dto.PrivateChatDTO;
 import com.project.messenger.models.PrivateChat;

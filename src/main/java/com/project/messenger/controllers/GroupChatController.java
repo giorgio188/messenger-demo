@@ -3,11 +3,9 @@ package com.project.messenger.controllers;
 import com.project.messenger.dto.GroupChatDTO;
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMembers;
-import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.Roles;
 import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.GroupChatService;
-import com.project.messenger.services.UserProfileService;
+import com.project.messenger.services.groupChat.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
-import java.util.Map;
 
 @RequestMapping("api/group-chat")
 @RestController

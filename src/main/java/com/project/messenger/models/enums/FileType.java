@@ -18,6 +18,7 @@ public enum FileType {
     RAR("application/x-rar-compressed", ".rar");
 
     private final String contentType;
+    @Getter
     private final String extension;
 
     FileType(String contentType, String extension) {
@@ -30,4 +31,5 @@ public enum FileType {
                 .filter(type -> type.getContentType().equals(contentType))
                 .findFirst();
     }
+
 }

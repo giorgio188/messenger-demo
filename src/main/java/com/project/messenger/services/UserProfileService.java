@@ -125,64 +125,6 @@ public class UserProfileService {
 
     @Transactional
     public String uploadAvatar(int userId, MultipartFile file) {
-//        log.debug("Starting avatar upload for user: {}", userId);
-//
-//        // Проверяем файл
-//        if (file == null || file.isEmpty()) {
-//            log.error("File is empty for user: {}", userId);
-//            throw new IllegalArgumentException("File is empty");
-//        }
-//
-//        // Проверяем тип файла
-//        String contentType = file.getContentType();
-//        if (contentType == null || !contentType.startsWith("image/")) {
-//            log.error("Invalid file type: {} for user: {}", contentType, userId);
-//            throw new IllegalArgumentException("Invalid file type. Only images are allowed");
-//        }
-//
-//        // Получаем пользователя
-//        UserProfile userProfile = getUserProfile(userId);
-//        if (userProfile == null) {
-//            log.error("User not found: {}", userId);
-//            throw new RuntimeException("User not found");
-//        }
-//
-//        try {
-//            log.debug("Checking existing avatar for user: {}", userId);
-//            // Удаляем старый аватар если есть
-//            String currentAvatar = userProfile.getAvatar();
-//            if (currentAvatar != null && !currentAvatar.isEmpty()) {
-//                try {
-//                    log.debug("Deleting old avatar: {} for user: {}", currentAvatar, userId);
-//                    s3Service.deleteFile(currentAvatar);
-//                } catch (Exception e) {
-//                    log.warn("Failed to delete old avatar: {} for user: {}. Error: {}",
-//                            currentAvatar, userId, e.getMessage());
-//                    // Продолжаем выполнение даже если не удалось удалить старый файл
-//                }
-//            }
-//
-//            // Загружаем новый аватар
-//            log.debug("Uploading new avatar for user: {}", userId);
-//            String fileName = s3Service.uploadFile(file, AVATAR_DIRECTORY);
-//            log.debug("Successfully uploaded new avatar: {} for user: {}", fileName, userId);
-//
-//            // Сохраняем имя файла в БД
-//            log.debug("Updating user profile with new avatar filename: {}", fileName);
-//            userProfile.setAvatar(fileName);
-//            updateUserProfile(userId, userProfile);
-//            log.debug("Successfully updated user profile with new avatar");
-//
-//            // Получаем URL для клиента
-//            String avatarUrl = s3Service.getFileUrl(fileName);
-//            log.debug("Generated avatar URL: {}", avatarUrl);
-//
-//            return avatarUrl;
-//        } catch (Exception e) {
-//            log.error("Error during avatar upload for user: {}. Error: {}", userId, e.getMessage(), e);
-//            throw new RuntimeException("Failed to upload avatar: " + e.getMessage(), e);
-//        }
-//        ----------------------------
         UserProfile userProfile = getUserProfile(userId);
         try {
             if (!userProfile.getAvatar().isEmpty() && userProfile.getAvatar() != null) {
