@@ -60,35 +60,40 @@ public class GroupChatController {
 
     @DeleteMapping("/{groupChatId}")
     @ResponseStatus(HttpStatus.FOUND)
-    public String deleteGroupChat(@PathVariable int groupChatId) {
-        groupChatService.deleteGroupChat(groupChatId);
+    public String deleteGroupChat(@RequestHeader("Authorization") String token,
+                                  @PathVariable int groupChatId) {
+
+        groupChatService.deleteGroupChat(groupChatId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return "redirect:/all";
     }
 
     @PatchMapping("/{groupChatId}}/edit-descrip")
     public ResponseEntity<GroupChat> editGroupChatDescription(
+            @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
             @RequestParam String newDesc
     ) {
-        groupChatService.editDescription(groupChatId, newDesc);
+        groupChatService.editDescription(groupChatId, newDesc, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{groupChatId}/edit-name")
     public ResponseEntity<GroupChat> editGroupChatName(
+            @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
             @RequestParam String newName
     ) {
-        groupChatService.editName(groupChatId, newName);
+        groupChatService.editName(groupChatId, newName, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/{groupChatId}/delete-user")
     public ResponseEntity<GroupChat> deleteUser(
+            @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
             @RequestParam int userId
     ) {
-        groupChatService.deleteUser(groupChatId, userId);
+        groupChatService.deleteUser(groupChatId, userId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return ResponseEntity.ok().build();
     }
 
@@ -110,7 +115,7 @@ public class GroupChatController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/members/{groupChatId}")
+    @GetMapping("/{groupChatId}/members")
     public ResponseEntity<List<GroupChatMembers>> getGroupChatMembers(@PathVariable int groupChatId) {
         List<GroupChatMembers>  members =  groupChatService.getAllGroupChatMembersByGroupChat(groupChatId);
         return ResponseEntity.ok(members);
