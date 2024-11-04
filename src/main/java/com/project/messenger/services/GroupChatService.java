@@ -99,6 +99,11 @@ public class GroupChatService {
         groupChatRepository.deleteById(groupChatId);
     }
 
+    public List<GroupChatMembers> getAllGroupChatMembersByGroupChat(int groupChatId) {
+        List<GroupChatMembers> members = groupChatRepository.findAllGroupChatMember(groupChatId);
+        return members;
+    }
+
 
 }
 
