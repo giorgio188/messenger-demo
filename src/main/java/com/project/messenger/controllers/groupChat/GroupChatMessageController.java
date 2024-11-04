@@ -38,16 +38,14 @@ public class GroupChatMessageController {
 
     @GetMapping("/{groupChatId}")
     public ResponseEntity<List<GroupChatMessage>> getGroupChatMessages(
-            @PathVariable int groupChatId
-    ) {
+            @PathVariable int groupChatId) {
         List<GroupChatMessage> messages = groupChatMessageService.getGroupChatMessages(groupChatId);
         return ResponseEntity.ok(messages);
     }
 
     @DeleteMapping("/{MessageId}")
     public ResponseEntity<String> deleteMessage(
-            @PathVariable int MessageId
-    ) {
+            @PathVariable int MessageId) {
         groupChatMessageService.deleteGroupMessage(MessageId);
         return ResponseEntity.ok("Message was deleted");
     }
@@ -55,8 +53,7 @@ public class GroupChatMessageController {
     @PatchMapping("/{messageId}")
     public ResponseEntity<GroupChatMessage> editMessage(
             @PathVariable int messageId,
-            @RequestParam String editedTextMessage
-    ) {
+            @RequestParam String editedTextMessage) {
         GroupChatMessage updatedMessage = groupChatMessageService.editGroupMessage(messageId, editedTextMessage);
         return ResponseEntity.ok(updatedMessage);
     }

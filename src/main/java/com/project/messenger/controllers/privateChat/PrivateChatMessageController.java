@@ -22,7 +22,6 @@ public class PrivateChatMessageController {
     private final JWTUtil jwtUtil;
     private final PrivateChatService privateChatService;
 
-
     @PostMapping("/{privateChatId}")
     public ResponseEntity<PrivateChatMessage> sendMessage(
             @RequestHeader("Authorization") String token,
@@ -57,21 +56,4 @@ public class PrivateChatMessageController {
         PrivateChatMessage updatedMessage = privateChatMessageService.editPrivateMessage(messageId, editedMessage);
         return ResponseEntity.ok(updatedMessage);
     }
-
-//    @PatchMapping("/{messageId}/read")
-//    public ResponseEntity<PrivateChatMessage> markMessageAsRead(@PathVariable int messageId) {
-//        PrivateChatMessage updatedMessage = privateChatMessageService.markMessageAsRead(messageId);
-//        return ResponseEntity.ok(updatedMessage);
-//    }
-
-//    @PostMapping("/{privateChatId}")
-//    public ResponseEntity<PrivateChatMessage> sendMessage(
-//            @RequestHeader("Authorization") String token,
-//            @RequestParam int receiverId,
-//            @RequestParam String message) {
-//        int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-//        PrivateChatMessage sentMessage = privateChatMessageService.sendMessage(senderId, receiverId, message);
-//        return ResponseEntity.ok(sentMessage);
-//    }
-
 }

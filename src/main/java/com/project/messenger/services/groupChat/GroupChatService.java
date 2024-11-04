@@ -7,7 +7,6 @@ import com.project.messenger.models.enums.Roles;
 import com.project.messenger.repositories.GroupChatMembersRepository;
 import com.project.messenger.repositories.GroupChatRepository;
 import com.project.messenger.repositories.UserProfileRepository;
-import com.project.messenger.services.UserProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,7 +23,6 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class GroupChatService {
 
-    private final UserProfileService userProfileService;
     private final GroupChatRepository groupChatRepository;
     private final UserProfileRepository userProfileRepository;
     private final GroupChatMembersRepository groupChatMembersRepository;
@@ -106,12 +104,13 @@ public class GroupChatService {
         if (isCreator(groupChatId, userId)) {
             groupChatRepository.deleteById(groupChatId);
             List<GroupChatMembers> members = getAllGroupChatMembersByGroupChat(groupChatId);
-            groupChatMembersRepository.deleteGroupChatMembersByGroupChat(groupChatRepository.findById(groupChatId).get());
+            groupChatMembersRepository.deleteAllByGroupChat(groupChatRepository.findById(groupChatId).get());
         } else throw new AccessDeniedException("User is not an admin of this chat");
     }
 
     public List<GroupChatMembers> getAllGroupChatMembersByGroupChat(int groupChatId) {
-        List<GroupChatMembers> members = groupChatRepository.findAllGroupChatMember(groupChatId);
+        GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        List<GroupChatMembers> members = groupChatMembersRepository.findAllByGroupChat(groupChat);
         return members;
     }
 
@@ -119,7 +118,7 @@ public class GroupChatService {
     public void leaveGroupChat(int groupChatId, int memberId) {
         UserProfile member = userProfileRepository.findById(memberId).get();
         GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
-        groupChatMembersRepository.deleteMemberByGroupChat(groupChat, member);
+        groupChatMembersRepository.deleteByGroupChatAndMember(groupChat, member);
     }
 
     @Transactional

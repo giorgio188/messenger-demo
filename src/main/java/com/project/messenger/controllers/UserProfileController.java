@@ -4,7 +4,6 @@ import com.project.messenger.dto.UserProfileDTO;
 import com.project.messenger.models.UserProfile;
 import com.project.messenger.repositories.UserProfileRepository;
 import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.S3Service;
 import com.project.messenger.services.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -101,8 +100,6 @@ public class UserProfileController {
         return ResponseEntity.ok(avatarLink);
     }
 
-//    месседж маппинг?
-//    добавление в друзья уже на странице другого юзера
     @PostMapping("/addFriend")
     @ResponseStatus(HttpStatus.FOUND)
     public String addFriend (@RequestHeader("Authorization") String token,
@@ -112,8 +109,6 @@ public class UserProfileController {
         return "redirect:/friendList";
     }
 
-    //    месседж маппинг?
-//    добавление в друзья на странице со списком друзей (отдельная кнопка удалить друга)
     @DeleteMapping("/deleteFriend")
     @ResponseStatus(HttpStatus.FOUND)
     public String deleteFriend (@RequestHeader("Authorization") String token,
@@ -122,5 +117,4 @@ public class UserProfileController {
         userProfileService.deleteFriend(userId, friendId);
         return "redirect:/friendList";
     }
-
 }

@@ -1,7 +1,6 @@
 package com.project.messenger.services;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.project.messenger.models.enums.FileType;
@@ -11,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.springframework.core.annotation.MergedAnnotation.Adapt.values;
@@ -33,11 +30,6 @@ public class S3Service {
             metadata.setContentType(file.getContentType());
             metadata.setContentLength(file.getSize());
 
-//            PutObjectRequest request = new PutObjectRequest(bucketName,
-//                    fileName,
-//                    file.getInputStream(),
-//                    metadata
-//            ).withCannedAcl(CannedAccessControlList.PublicRead);
             PutObjectRequest request = new PutObjectRequest(bucketName,
                     fileName,
                     file.getInputStream(),
@@ -60,7 +52,6 @@ public class S3Service {
                 extension = originalFileName.substring(lastDotIndex);
             }
         }
-        // Если расширение не найдено, пытаемся определить по contentType
         if (extension.isEmpty()) {
             String contentType = file.getContentType();
             if (contentType != null) {

@@ -2,7 +2,6 @@ package com.project.messenger.controllers.groupChat;
 
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatFiles;
-import com.project.messenger.models.GroupChatMessage;
 import com.project.messenger.security.JWTUtil;
 import com.project.messenger.services.groupChat.GroupChatFileService;
 import com.project.messenger.services.groupChat.GroupChatMessageService;
@@ -39,23 +38,19 @@ public class GroupChatFileController {
         }
         GroupChatFiles groupChatFile = groupChatFileService.sendFile(memberId, groupChatId, file);
         return ResponseEntity.ok(groupChatFile);
-
     }
 
     @GetMapping("/{groupChatId}")
     public ResponseEntity<List<GroupChatFiles>> getGroupChatFiles(
-            @PathVariable int groupChatId
-    ) {
+            @PathVariable int groupChatId) {
         List<GroupChatFiles> files =groupChatFileService.getAllFiles(groupChatId);
         return ResponseEntity.ok(files);
     }
 
     @DeleteMapping("/{fileId}")
     public ResponseEntity<String> deleteMessage(
-            @PathVariable int fileId
-    ) {
+            @PathVariable int fileId) {
         groupChatFileService.deleteFile(fileId);
         return ResponseEntity.ok("File was deleted");
     }
-
 }

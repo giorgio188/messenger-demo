@@ -10,14 +10,11 @@ import com.project.messenger.services.S3Service;
 import com.project.messenger.services.UserProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,9 +59,16 @@ public class PrivateChatFileService {
     public void deletePrivateChatFile(int fileId) {
         Optional<PrivateChatFiles> privateChatFile = privateChatFileRepository.findById(fileId);
         if (privateChatFile.isPresent()) {
-            String fileName = privateChatFile.get().getFilePath();
+            String fileName = privateChatFile.get().getFileName();
             s3Service.deleteFile(fileName);
             privateChatFileRepository.delete(privateChatFile.get());
         } else throw new EntityNotFoundException("File with id " + fileId + " not found");
+    }
+
+    public String getFileById(int fileId){
+        PrivateChatFiles file = privateChatFileRepository.findById(fileId).orElse(null);
+        if(file != null){
+            return s3Service.getFileUrl(file.getFileName());
+        } else throw new EntityNotFoundException("No such file");
     }
 }

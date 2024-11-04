@@ -10,11 +10,9 @@ import java.util.List;
 
 @Repository
 public interface GroupChatMembersRepository extends JpaRepository<GroupChatMembers, Integer> {
-
     GroupChatMembers findByGroupChatAndMember(GroupChat groupChatId, UserProfile member);
     List<GroupChatMembers> findByMember(UserProfile member);
-    GroupChatMembers deleteGroupChatByGroupChatAndUserProfile(GroupChat groupChat, UserProfile member);
-    GroupChatMembers findByGroupChat(GroupChat groupChat);
-    void deleteGroupChatMembersByGroupChat(GroupChat groupChat);
-    void deleteMemberByGroupChat(GroupChat groupChat, UserProfile member);
+    void deleteAllByGroupChat(GroupChat groupChat);
+    void deleteByGroupChatAndMember(GroupChat groupChat, UserProfile member);
+    List<GroupChatMembers> findAllByGroupChat(GroupChat groupChat);
 }

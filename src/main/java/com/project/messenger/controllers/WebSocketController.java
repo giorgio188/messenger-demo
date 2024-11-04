@@ -100,9 +100,6 @@ public class WebSocketController {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         userProfileService.deleteFriend(userId, friendId);
     }
-
-
-
 }
 
 //  private final PrivateChatMessageService privateChatMessageService;

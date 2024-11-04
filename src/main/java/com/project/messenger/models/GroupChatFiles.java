@@ -1,6 +1,6 @@
 package com.project.messenger.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.*;
 import com.project.messenger.models.enums.FileType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -22,28 +22,33 @@ public class GroupChatFiles {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_chat_id", referencedColumnName = "id")
+    @JsonProperty("groupChatId")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private GroupChat groupChat;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonProperty("senderId")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private UserProfile sender;
 
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
 
-    @Column(name = "file")
-    private String fileUrl;
+    @Column(name = "file_name")
+    private String fileName;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", length = 10)
     private FileType type;
 
-    public GroupChatFiles(GroupChat groupChat, LocalDateTime sentAt, UserProfile sender, String fileUrl, FileType type) {
+    public GroupChatFiles(GroupChat groupChat, LocalDateTime sentAt, UserProfile sender, String fileName, FileType type) {
         this.groupChat = groupChat;
         this.sentAt = sentAt;
         this.sender = sender;
-        this.fileUrl = fileUrl;
+        this.fileName = fileName;
         this.type = type;
     }
 }

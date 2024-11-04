@@ -1,7 +1,5 @@
 package com.project.messenger.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.project.messenger.services.UserProfileDetailsService;
 import com.project.messenger.services.UserProfileService;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,5 @@
 package com.project.messenger.config;
-import com.project.messenger.services.UserProfileService;
-import com.project.messenger.utils.WebSocketEventHandler;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;

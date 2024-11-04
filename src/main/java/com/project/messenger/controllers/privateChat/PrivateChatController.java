@@ -20,7 +20,6 @@ public class PrivateChatController {
     private final PrivateChatService privateChatService;
     private final JWTUtil jwtUtil;
 
-    // Получение чата по ID
     @GetMapping("/{privateChatId}")
     public ResponseEntity<PrivateChat> getPrivateChat(
             @RequestHeader("Authorization") String token,
@@ -30,7 +29,6 @@ public class PrivateChatController {
         return ResponseEntity.ok(privateChat);
     }
 
-    // Получение чата по сендеру и ресиверу (грубо говоря поиск чата)
     @GetMapping("/find")
     public ResponseEntity<PrivateChat> getPrivateChatBySenderAndReceiver(
             @RequestHeader("Authorization") String token,
@@ -40,14 +38,12 @@ public class PrivateChatController {
         return ResponseEntity.ok(privateChat);
     }
 
-//    вывод всех чатов юзера
     @GetMapping()
     public ResponseEntity<List<PrivateChat>> getPrivateChatsOfUser(@RequestHeader("Authorization") String token) {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         List<PrivateChat> chats = privateChatService.getAllChatsOfOneUser(userId);
         return ResponseEntity.ok(chats);
     }
-
 
     @PostMapping("/create")
     public ResponseEntity<PrivateChat> createPrivateChat(@RequestHeader("Authorization") String token, @RequestParam int receiverId) {

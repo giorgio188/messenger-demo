@@ -26,8 +26,7 @@ public class GroupChatController {
     @GetMapping("/{groupChatId}")
     public ResponseEntity<GroupChat> getGroupChat(
             @RequestHeader("Authorization") String token,
-            @PathVariable int groupChatId
-    )  throws AccessDeniedException {
+            @PathVariable int groupChatId)  throws AccessDeniedException {
         int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         GroupChat groupChat = groupChatService.getGroupChat(groupChatId, memberId);
         return  ResponseEntity.ok(groupChat);
@@ -35,8 +34,7 @@ public class GroupChatController {
 
     @GetMapping()
     public ResponseEntity<List<GroupChat>> getGroupChatsByMember(
-            @RequestHeader("Authorization") String token
-    ) {
+            @RequestHeader("Authorization") String token) {
         int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         List<GroupChat> groupChats = groupChatService.getAllGroupChatsByUser(memberId);
         return  ResponseEntity.ok(groupChats);
@@ -45,8 +43,7 @@ public class GroupChatController {
     @PostMapping("/create")
     public ResponseEntity<GroupChat> createGroupChat(
             @RequestHeader("Authorization") String token,
-            @RequestBody GroupChatDTO groupChatDTO
-    ) {
+            @RequestBody GroupChatDTO groupChatDTO) {
         int creatorId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         groupChatService.createGroupChat(
                 groupChatDTO.getName(),
@@ -59,17 +56,15 @@ public class GroupChatController {
     @ResponseStatus(HttpStatus.FOUND)
     public String deleteGroupChat(@RequestHeader("Authorization") String token,
                                   @PathVariable int groupChatId) {
-
         groupChatService.deleteGroupChat(groupChatId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return "redirect:/all";
     }
 
-    @PatchMapping("/{groupChatId}}/edit-descrip")
+    @PatchMapping("/{groupChatId}/edit-descrip")
     public ResponseEntity<GroupChat> editGroupChatDescription(
             @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
-            @RequestParam String newDesc
-    ) {
+            @RequestParam String newDesc) {
         groupChatService.editDescription(groupChatId, newDesc, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return ResponseEntity.ok().build();
     }
@@ -78,8 +73,7 @@ public class GroupChatController {
     public ResponseEntity<GroupChat> editGroupChatName(
             @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
-            @RequestParam String newName
-    ) {
+            @RequestParam String newName) {
         groupChatService.editName(groupChatId, newName, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return ResponseEntity.ok().build();
     }
@@ -88,8 +82,7 @@ public class GroupChatController {
     public ResponseEntity<GroupChat> deleteUser(
             @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
-            @RequestParam int userId
-    ) {
+            @RequestParam int userId) {
         groupChatService.deleteUser(groupChatId, userId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return ResponseEntity.ok().build();
     }
@@ -97,8 +90,7 @@ public class GroupChatController {
     @PatchMapping("/{groupChatId}/add-user")
     public ResponseEntity<GroupChat> addUser(
             @PathVariable int groupChatId,
-            @RequestParam int userId
-    ) {
+            @RequestParam int userId) {
         groupChatService.addUser(groupChatId, userId, Roles.MEMBER);
         return ResponseEntity.ok().build();
     }
@@ -120,10 +112,10 @@ public class GroupChatController {
 
     @DeleteMapping("/{groupChatId}/leave")
     public ResponseEntity<GroupChat> leaveGroupChatByUser(
-            @PathVariable int groupChatId,
-            @RequestParam int memberId
-    ) {
-        groupChatService.leaveGroupChat(groupChatId, memberId);
+            @RequestHeader("Authorization") String token,
+            @PathVariable int groupChatId) {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        groupChatService.leaveGroupChat(groupChatId, userId);
         return ResponseEntity.ok().build();
     }
 

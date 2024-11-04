@@ -1,6 +1,6 @@
 package com.project.messenger.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.*;
 import com.project.messenger.models.enums.Roles;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -22,12 +22,16 @@ public class GroupChatMembers {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "group_chat_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonProperty("groupChatId")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private GroupChat groupChat;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", referencedColumnName = "id")
-    @JsonBackReference
+    @JsonProperty("memberId")
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
     private UserProfile member;
 
     @NotNull

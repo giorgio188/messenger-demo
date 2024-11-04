@@ -33,10 +33,7 @@ public class AuthController {
     private final UserProfileRepository userProfileRepository;
     private final ModelMapper modelMapper;
 
-//TODO
-
     @PostMapping("/registration")
-    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> performRegistration (@RequestBody RegistrationDTO registrationDTO,
                                                   BindingResult bindingResult) {
         UserProfile userProfile = modelMapper.map(registrationDTO, UserProfile.class);
@@ -50,7 +47,6 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<?> performLogin(
             @RequestBody AuthDTO authDTO) {
         UsernamePasswordAuthenticationToken authToken =
@@ -64,7 +60,5 @@ public class AuthController {
         String token = jwtUtil.generateToken(authDTO.getUsername(), id);
         return ResponseEntity.ok(Map.of("token", token));
     }
-
-//    TODO
 
 }

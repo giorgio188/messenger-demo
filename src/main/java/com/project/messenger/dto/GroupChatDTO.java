@@ -1,10 +1,10 @@
 package com.project.messenger.dto;
 
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
+@Data
 public class GroupChatDTO {
 
     private String name;

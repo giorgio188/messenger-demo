@@ -41,7 +41,7 @@ create table private_chat_files
     sender_id       int references user_profile (id),
     receiver_id    int references user_profile (id),
     sent_at         timestamp,
-    file       varchar,
+    file_name       varchar,
     type            varchar(10)
 );
 create table group_chat
@@ -66,7 +66,7 @@ create table group_chat_files
     group_chat_id int references group_chat (id) on delete cascade,
     sender_id     int references user_profile (id),
     sent_at       timestamp,
-    file     varchar,
+    file_name     varchar,
     type          varchar(10)
 );
 create table group_chat_members
