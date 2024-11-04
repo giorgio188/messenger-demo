@@ -101,10 +101,17 @@ public class GroupChatController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/{groupChatId}/change-role")
+    public ResponseEntity<?> changeRole(@RequestHeader("Authorization") String token,
+                                                       @PathVariable int groupChatId,
+                                                       @RequestParam int memberId,
+                                                       @RequestParam Roles role) {
+        groupChatService.setRoleToMember(groupChatId, memberId, role, jwtUtil.extractUserId(token));
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/members/{groupChatId}")
-    public ResponseEntity<List<GroupChatMembers>> getGroupChatMembers(
-            @PathVariable int groupChatId
-    ) {
+    public ResponseEntity<List<GroupChatMembers>> getGroupChatMembers(@PathVariable int groupChatId) {
         List<GroupChatMembers>  members =  groupChatService.getAllGroupChatMembersByGroupChat(groupChatId);
         return ResponseEntity.ok(members);
     }
