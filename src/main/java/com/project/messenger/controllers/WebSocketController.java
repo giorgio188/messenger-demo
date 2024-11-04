@@ -46,8 +46,6 @@ public class WebSocketController {
                                    @Payload String message,
                                    @Header("Authorization") String token) throws AccessDeniedException {
         int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-
-        // Проверяем доступ к чату
         privateChatService.getPrivateChat(chatId, senderId);
         chatMessageService.sendMessage(senderId, chatId, message);
     }

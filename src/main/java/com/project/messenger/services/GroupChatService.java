@@ -47,7 +47,7 @@ public class GroupChatService {
         groupChat.setCreatedAt(LocalDateTime.now());
         groupChatRepository.save(groupChat);
 
-        addUser(groupChat.getId(), creatorId, Roles.ADMIN);
+        addUser(groupChat.getId(), creatorId, Roles.CREATOR);
         return groupChat;
     }
 
@@ -104,6 +104,27 @@ public class GroupChatService {
         return members;
     }
 
+    @Transactional
+    public void setRoleToMember(int groupChatId, int memberId, Roles role, int adminId) {
+        if (ifAdmin(groupChatId, adminId)) {
+            UserProfile member = userProfileRepository.findById(memberId).get();
+            GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+            GroupChatMembers memberToChange = groupChatMembersRepository.findByGroupChatAndMember(groupChat, member);
+            memberToChange.setRole(role);
+            groupChatMembersRepository.save(memberToChange);
+        } else throw new AccessDeniedException("User is not an admin of this chat");
+    }
+
+    private boolean ifAdmin (int groupChatId, int userId) {
+        GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        GroupChatMembers admin = groupChatMembersRepository.findByGroupChatAndMember(groupChat,
+                userProfileRepository.findById(groupChatId).get());
+        if (admin.getRole() == Roles.ADMIN || admin.getRole() == Roles.CREATOR) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 }
 
