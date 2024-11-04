@@ -38,4 +38,12 @@ public class GroupChatFiles {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", length = 10)
     private FileType type;
+
+    public GroupChatFiles(GroupChat groupChat, LocalDateTime sentAt, UserProfile sender, String fileUrl, FileType type) {
+        this.groupChat = groupChat;
+        this.sentAt = sentAt;
+        this.sender = sender;
+        this.fileUrl = fileUrl;
+        this.type = type;
+    }
 }

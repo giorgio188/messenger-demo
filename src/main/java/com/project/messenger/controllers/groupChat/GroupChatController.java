@@ -1,4 +1,4 @@
-package com.project.messenger.controllers;
+package com.project.messenger.controllers.groupChat;
 
 import com.project.messenger.dto.GroupChatDTO;
 import com.project.messenger.models.GroupChat;

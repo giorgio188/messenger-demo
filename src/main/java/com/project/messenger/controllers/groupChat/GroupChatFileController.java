@@ -1,64 +1,61 @@
-package com.project.messenger.controllers;
+package com.project.messenger.controllers.groupChat;
 
 import com.project.messenger.models.GroupChat;
+import com.project.messenger.models.GroupChatFiles;
 import com.project.messenger.models.GroupChatMessage;
 import com.project.messenger.security.JWTUtil;
+import com.project.messenger.services.groupChat.GroupChatFileService;
 import com.project.messenger.services.groupChat.GroupChatMessageService;
 import com.project.messenger.services.groupChat.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 
-@RequestMapping("api/group-message")
+@RequestMapping("api/group-file")
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "http://localhost:3000")
-public class GroupChatMessageController {
+public class GroupChatFileController {
 
     private final GroupChatMessageService groupChatMessageService;
     private final GroupChatService groupChatService;
     private final JWTUtil jwtUtil;
+    private final GroupChatFileService groupChatFileService;
 
     @PostMapping("/{groupChatId}")
-    public ResponseEntity<GroupChatMessage> sendMessage(
+    public ResponseEntity<GroupChatFiles> sendFile(
             @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
-            @RequestParam String message) throws AccessDeniedException {
+            @RequestParam MultipartFile file) throws IOException {
         int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         GroupChat groupChat = groupChatService.getGroupChat(groupChatId, memberId);
         if (groupChat == null) {
             throw new AccessDeniedException("Access denied");
         }
-        GroupChatMessage groupChatMessage = groupChatMessageService.sendMessage(memberId, groupChatId, message);
-        return ResponseEntity.ok(groupChatMessage);
+        GroupChatFiles groupChatFile = groupChatFileService.sendFile(memberId, groupChatId, file);
+        return ResponseEntity.ok(groupChatFile);
+
     }
 
     @GetMapping("/{groupChatId}")
-    public ResponseEntity<List<GroupChatMessage>> getGroupChatMessages(
+    public ResponseEntity<List<GroupChatFiles>> getGroupChatFiles(
             @PathVariable int groupChatId
     ) {
-        List<GroupChatMessage> messages = groupChatMessageService.getGroupChatMessages(groupChatId);
-        return ResponseEntity.ok(messages);
+        List<GroupChatFiles> files =groupChatFileService.getAllFiles(groupChatId);
+        return ResponseEntity.ok(files);
     }
 
-    @DeleteMapping("/{MessageId}")
+    @DeleteMapping("/{fileId}")
     public ResponseEntity<String> deleteMessage(
-            @PathVariable int MessageId
+            @PathVariable int fileId
     ) {
-        groupChatMessageService.deleteGroupMessage(MessageId);
-        return ResponseEntity.ok("Message deleted");
-    }
-
-    @PatchMapping("/{MessageId}")
-    public ResponseEntity<GroupChatMessage> editMessage(
-            @PathVariable int messageId,
-            @RequestParam String editedTextMessage
-    ) {
-        GroupChatMessage updatedMessage = groupChatMessageService.editGroupMessage(messageId, editedTextMessage);
-        return ResponseEntity.ok(updatedMessage);
+        groupChatFileService.deleteFile(fileId);
+        return ResponseEntity.ok("File was deleted");
     }
 
 }

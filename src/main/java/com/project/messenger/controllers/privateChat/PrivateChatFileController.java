@@ -1,4 +1,4 @@
-package com.project.messenger.controllers;
+package com.project.messenger.controllers.privateChat;
 
 import com.project.messenger.models.PrivateChatFiles;
 import com.project.messenger.security.JWTUtil;
@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
