@@ -9,6 +9,7 @@ import com.project.messenger.repositories.GroupChatRepository;
 import com.project.messenger.repositories.UserProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.User;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -105,6 +106,13 @@ public class GroupChatService {
     }
 
     @Transactional
+    public void leaveGroupChat(int groupChatId, int memberId) {
+        UserProfile member = userProfileRepository.findById(memberId).get();
+        GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        groupChatMembersRepository.deleteGroupChatByGroupChatAndUserProfile(groupChat, member);
+    }
+
+    @Transactional
     public void setRoleToMember(int groupChatId, int memberId, Roles role, int adminId) {
         if (ifAdmin(groupChatId, adminId)) {
             UserProfile member = userProfileRepository.findById(memberId).get();
@@ -117,8 +125,9 @@ public class GroupChatService {
 
     private boolean ifAdmin (int groupChatId, int userId) {
         GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
-        GroupChatMembers admin = groupChatMembersRepository.findByGroupChatAndMember(groupChat,
-                userProfileRepository.findById(groupChatId).get());
+        GroupChatMembers admin = groupChatMembersRepository.findByGroupChatAndMember(
+                groupChat,
+                userProfileRepository.findById(userId).get());
         if (admin.getRole() == Roles.ADMIN || admin.getRole() == Roles.CREATOR) {
             return true;
         } else {

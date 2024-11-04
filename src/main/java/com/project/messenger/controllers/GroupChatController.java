@@ -116,4 +116,13 @@ public class GroupChatController {
         return ResponseEntity.ok(members);
     }
 
+    @DeleteMapping("/{groupChatId}/leave")
+    public ResponseEntity<GroupChat> leaveGroupChatByUser(
+            @PathVariable int groupChatId,
+            @RequestParam int memberId
+    ) {
+        groupChatService.leaveGroupChat(groupChatId, memberId);
+        return ResponseEntity.ok().build();
+    }
+
 }
