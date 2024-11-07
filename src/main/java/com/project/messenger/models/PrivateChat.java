@@ -32,6 +32,7 @@ public class PrivateChat {
     private UserProfile receiver;
 
     @Column(name = "created_at")
+    @JsonBackReference
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 

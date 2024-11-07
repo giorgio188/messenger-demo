@@ -1,6 +1,6 @@
 package com.project.messenger.utils;
 
-import com.project.messenger.dto.GroupChatDTO;
+import com.project.messenger.dto.GroupChatCreatingDTO;
 import com.project.messenger.models.GroupChat;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 public class MapperForDTO {
     private final ModelMapper modelMapper;
 
-    public GroupChatDTO convertToGroupChatDTO(GroupChat groupChat) {
-        return this.modelMapper.map(groupChat, GroupChatDTO.class);
+    public GroupChatCreatingDTO convertToGroupChatDTO(GroupChat groupChat) {
+        return this.modelMapper.map(groupChat, GroupChatCreatingDTO.class);
     }
 
-    public GroupChat convertToGroupChat(GroupChatDTO groupChatDTO) {
+    public GroupChat convertToGroupChat(GroupChatCreatingDTO groupChatDTO) {
         return this.modelMapper.map(groupChatDTO, GroupChat.class);
     }
 }

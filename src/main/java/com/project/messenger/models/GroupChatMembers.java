@@ -36,6 +36,7 @@ public class GroupChatMembers {
 
     @NotNull
     @Column(name = "role")
+    @Enumerated(EnumType.STRING)
     private Roles role;
 
 }

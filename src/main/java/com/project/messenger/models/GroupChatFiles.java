@@ -35,6 +35,7 @@ public class GroupChatFiles {
     private UserProfile sender;
 
     @Column(name = "sent_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime sentAt;
 
     @Column(name = "file_name")

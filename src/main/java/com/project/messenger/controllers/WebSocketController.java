@@ -3,7 +3,10 @@ package com.project.messenger.controllers;
 import com.project.messenger.dto.UserProfileDTO;
 import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.ProfileStatus;
+import com.project.messenger.models.enums.Roles;
 import com.project.messenger.security.JWTUtil;
+import com.project.messenger.services.groupChat.GroupChatMessageService;
+import com.project.messenger.services.groupChat.GroupChatService;
 import com.project.messenger.services.privateChat.PrivateChatMessageService;
 import com.project.messenger.services.privateChat.PrivateChatService;
 import com.project.messenger.services.UserProfileService;
@@ -24,6 +27,8 @@ public class WebSocketController {
     private final UserProfileService userProfileService;
     private final JWTUtil jwtUtil;
     private final ModelMapper modelMapper;
+    private final GroupChatService groupChatService;
+    private final GroupChatMessageService groupChatMessageService;
 
     // Приватные чаты
     @MessageMapping("/private.chat.create/{receiverId}")
@@ -99,6 +104,68 @@ public class WebSocketController {
                              @Header("Authorization") String token) {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         userProfileService.deleteFriend(userId, friendId);
+    }
+
+    // Групповые чаты
+    @MessageMapping("/group.chat.create")
+    public void createGroupChat(@Payload String groupName,
+                                @Header("Authorization") String token) {
+        int creatorId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        groupChatService.createGroupChat(groupName, "", creatorId);
+    }
+
+    @MessageMapping("/group.chat.find/{groupId}")
+    public void findGroupChat(@DestinationVariable int groupId,
+                              @Header("Authorization") String token) throws AccessDeniedException {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        groupChatService.getGroupChat(groupId, userId);
+    }
+
+    // Групповые сообщения
+    @MessageMapping("/group.message.send/{groupId}")
+    public void sendGroupMessage(@DestinationVariable int groupId,
+                                 @Payload String message,
+                                 @Header("Authorization") String token) throws AccessDeniedException {
+        int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        groupChatService.getGroupChat(groupId, senderId);
+        groupChatMessageService.sendMessage(senderId, groupId, message);
+    }
+
+    @MessageMapping("/group.message.edit/{messageId}")
+    public void editGroupMessage(@DestinationVariable int messageId,
+                                 @Payload String message,
+                                 @Header("Authorization") String token) {
+        groupChatMessageService.editGroupMessage(messageId, message);
+    }
+
+    @MessageMapping("/group.message.delete/{messageId}")
+    public void deleteGroupMessage(@DestinationVariable int messageId,
+                                   @Header("Authorization") String token) {
+        groupChatMessageService.deleteGroupMessage(messageId);
+    }
+
+    // Управление участниками
+    @MessageMapping("/group.member.add/{groupId}/{userId}")
+    public void addGroupMember(@DestinationVariable int groupId,
+                               @DestinationVariable int userId,
+                               @Header("Authorization") String token) {
+        // По умолчанию добавляем с ролью MEMBER
+        groupChatService.addUser(groupId, userId, Roles.MEMBER);
+    }
+
+    @MessageMapping("/group.member.remove/{groupId}/{userId}")
+    public void removeGroupMember(@DestinationVariable int groupId,
+                                  @DestinationVariable int userId,
+                                  @Header("Authorization") String token) {
+        int adminId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        groupChatService.deleteUser(groupId, userId, adminId);
+    }
+
+    @MessageMapping("/group.member.leave/{groupId}")
+    public void leaveGroupChat(@DestinationVariable int groupId,
+                               @Header("Authorization") String token) {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        groupChatService.leaveGroupChat(groupId, userId);
     }
 }
 

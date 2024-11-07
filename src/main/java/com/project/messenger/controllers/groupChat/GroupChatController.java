@@ -1,6 +1,6 @@
 package com.project.messenger.controllers.groupChat;
 
-import com.project.messenger.dto.GroupChatDTO;
+import com.project.messenger.dto.GroupChatCreatingDTO;
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMembers;
 import com.project.messenger.models.enums.Roles;
@@ -41,9 +41,9 @@ public class GroupChatController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<GroupChat> createGroupChat(
+    public ResponseEntity<?> createGroupChat(
             @RequestHeader("Authorization") String token,
-            @RequestBody GroupChatDTO groupChatDTO) {
+            @RequestBody GroupChatCreatingDTO groupChatDTO) {
         int creatorId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         groupChatService.createGroupChat(
                 groupChatDTO.getName(),

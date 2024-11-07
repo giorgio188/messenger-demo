@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**", "error").permitAll()
-                        .requestMatchers("/api/private-chat/**", "/api/user/**",
+                        .requestMatchers("/api/private-chat/**", "/api/user/**", "/api/group-chat/**",
                                 "/ws/**", "/api/private-message/**", "api/group-message/**",
                                 "api/group-file/**", "api/private-file/**")
                         .permitAll()

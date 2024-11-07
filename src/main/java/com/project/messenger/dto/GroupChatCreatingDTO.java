@@ -1,11 +1,9 @@
 package com.project.messenger.dto;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 @Data
-public class GroupChatDTO {
+public class GroupChatCreatingDTO {
 
     private String name;
 

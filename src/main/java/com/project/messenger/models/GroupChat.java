@@ -1,6 +1,8 @@
 package com.project.messenger.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -8,6 +10,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +19,7 @@ import java.util.List;
 @Setter
 @Table(name = "group_chat")
 @RequiredArgsConstructor
-public class GroupChat {
+public class GroupChat{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,11 +38,8 @@ public class GroupChat {
 
     @NotNull
     @Column(name = "created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
-
-    @OneToMany(mappedBy = "groupChat", fetch = FetchType.LAZY)
-    @JsonBackReference
-    private List<GroupChatMembers> groupChatList;
 
     @OneToMany(mappedBy = "groupChat", fetch = FetchType.LAZY)
     @JsonBackReference
@@ -49,6 +49,7 @@ public class GroupChat {
     @JsonBackReference
     private List<GroupChatFiles> groupChatFiles;
 
-    @OneToMany(mappedBy = "groupChat", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "groupChat")
+    @JsonBackReference
     private List<GroupChatMembers> groupChatMembers;
 }
