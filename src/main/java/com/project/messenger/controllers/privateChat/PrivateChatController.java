@@ -22,7 +22,6 @@ public class PrivateChatController {
 
     private final PrivateChatService privateChatService;
     private final JWTUtil jwtUtil;
-    private final UserProfileService userProfileService;
 
     @GetMapping("/{privateChatId}")
     public ResponseEntity<PrivateChatDTO> getPrivateChat(
