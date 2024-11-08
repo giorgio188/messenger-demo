@@ -1,10 +1,7 @@
 package com.project.messenger.utils;
 
 import com.project.messenger.dto.*;
-import com.project.messenger.models.GroupChat;
-import com.project.messenger.models.GroupChatMessage;
-import com.project.messenger.models.PrivateChat;
-import com.project.messenger.models.PrivateChatMessage;
+import com.project.messenger.models.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -72,6 +69,14 @@ public class MapperForDTO {
         }).collect(Collectors.toList());
         groupChatDTO.setMembers(membersDTO);
         return groupChatDTO;
+    }
+
+    public UserUtilDTO convertUserToDTO(UserProfile userProfile) {
+        UserUtilDTO dto = new UserUtilDTO();
+        dto.setId(userProfile.getId());
+        dto.setUsername(userProfile.getUsername());
+        dto.setNickname(userProfile.getNickname());
+        return dto;
     }
 
 

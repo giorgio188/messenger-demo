@@ -1,6 +1,8 @@
 package com.project.messenger.services.privateChat;
 
 import com.project.messenger.dto.PrivateChatDTO;
+import com.project.messenger.dto.UserProfileDTO;
+import com.project.messenger.dto.UserUtilDTO;
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.models.UserProfile;
 import com.project.messenger.repositories.PrivateChatRepository;
@@ -69,6 +71,18 @@ public class PrivateChatService {
             throw new EntityNotFoundException("Private chat not found");
         }
         return privateChat.getId();
+    }
+
+    public List<UserUtilDTO> getPrivateChatParticipants(int chatId) {
+        Optional<PrivateChat> privateChat = privateChatRepository.findPrivateChatById(chatId);
+        if (privateChat.isPresent()) {
+            UserUtilDTO sender = mapperForDTO.convertUserToDTO(privateChat.get().getSender());
+            UserUtilDTO receiver = mapperForDTO.convertUserToDTO(privateChat.get().getReceiver());
+            List<UserUtilDTO> participants = new ArrayList<>();
+            participants.add(sender);
+            participants.add(receiver);
+            return participants;
+        } else throw new EntityNotFoundException("Private chat not found");
     }
 
     public List<PrivateChatDTO> getAllChatsOfOneUser(int id) {

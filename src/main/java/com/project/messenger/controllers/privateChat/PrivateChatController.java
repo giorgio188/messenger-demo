@@ -1,8 +1,10 @@
 package com.project.messenger.controllers.privateChat;
 
 import com.project.messenger.dto.PrivateChatDTO;
+import com.project.messenger.dto.UserUtilDTO;
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.security.JWTUtil;
+import com.project.messenger.services.UserProfileService;
 import com.project.messenger.services.privateChat.PrivateChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +22,7 @@ public class PrivateChatController {
 
     private final PrivateChatService privateChatService;
     private final JWTUtil jwtUtil;
+    private final UserProfileService userProfileService;
 
     @GetMapping("/{privateChatId}")
     public ResponseEntity<PrivateChatDTO> getPrivateChat(
@@ -44,6 +47,12 @@ public class PrivateChatController {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         List<PrivateChatDTO> chats = privateChatService.getAllChatsOfOneUser(userId);
         return ResponseEntity.ok(chats);
+    }
+
+    @GetMapping("/{privateChatId}/members")
+    public ResponseEntity<List<UserUtilDTO>> getPrivateChatMembers(@PathVariable int privateChatId) {
+        List<UserUtilDTO> privateChatMembers = privateChatService.getPrivateChatParticipants(privateChatId);
+        return ResponseEntity.ok(privateChatMembers);
     }
 
     @PostMapping("/create")
