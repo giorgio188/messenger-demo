@@ -22,6 +22,7 @@ public class PrivateChatController {
 
     private final PrivateChatService privateChatService;
     private final JWTUtil jwtUtil;
+    private final UserProfileService userProfileService;
 
     @GetMapping("/{privateChatId}")
     public ResponseEntity<PrivateChatDTO> getPrivateChat(
@@ -55,10 +56,11 @@ public class PrivateChatController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<PrivateChat> createPrivateChat(@RequestHeader("Authorization") String token, @RequestParam int receiverId) {
+    public ResponseEntity<PrivateChatDTO> createPrivateChat(@RequestHeader("Authorization") String token, @RequestParam int receiverId) {
         int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         privateChatService.createPrivateChat(senderId, receiverId);
-        return ResponseEntity.noContent().build();
+        PrivateChatDTO privateChat = privateChatService.getPrivateChatBySenderAndReceiver(senderId, receiverId);
+        return ResponseEntity.ok(privateChat);
     }
 
     @DeleteMapping("/{privateChatId}")
