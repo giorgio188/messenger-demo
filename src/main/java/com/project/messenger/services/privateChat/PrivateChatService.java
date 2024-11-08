@@ -5,6 +5,7 @@ import com.project.messenger.models.PrivateChat;
 import com.project.messenger.models.UserProfile;
 import com.project.messenger.repositories.PrivateChatRepository;
 import com.project.messenger.repositories.UserProfileRepository;
+import com.project.messenger.utils.MapperForDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -25,9 +26,10 @@ public class PrivateChatService {
     private final UserProfileRepository userProfileRepository;
     private final PrivateChatRepository privateChatRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MapperForDTO mapperForDTO;
 
 
-    public PrivateChat getPrivateChatBySenderAndReceiver(int senderId, int receiverId) {
+    public PrivateChatDTO getPrivateChatBySenderAndReceiver(int senderId, int receiverId) {
         UserProfile sender = userProfileRepository.findById(senderId).orElse(null);
         UserProfile receiver = userProfileRepository.findById(receiverId).orElse(null);
 
@@ -38,10 +40,10 @@ public class PrivateChatService {
         if (privateChat == null) {
             throw new EntityNotFoundException("Private chat not found");
         }
-        return privateChat;
+        return mapperForDTO.convertPrivateChatToDto(privateChat);
     }
 
-    public PrivateChat getPrivateChat(int chatId, int senderId) throws AccessDeniedException {
+    public PrivateChatDTO getPrivateChat(int chatId, int senderId) throws AccessDeniedException {
         PrivateChat privateChat = privateChatRepository.findById(chatId)
                 .orElseThrow(() -> new EntityNotFoundException("Private chat not found"));
 
@@ -49,7 +51,7 @@ public class PrivateChatService {
                 privateChat.getReceiver().getId() != senderId) {
             throw new AccessDeniedException("User is not a participant of this chat");
         }
-        return privateChat;
+        return mapperForDTO.convertPrivateChatToDto(privateChat);
     }
 
     // Метод для получения ID чата по участникам
@@ -69,14 +71,18 @@ public class PrivateChatService {
         return privateChat.getId();
     }
 
-    public List<PrivateChat> getAllChatsOfOneUser(int id) {
+    public List<PrivateChatDTO> getAllChatsOfOneUser(int id) {
         Optional<UserProfile> userProfile = userProfileRepository.findById(id);
         List<PrivateChat> allChatsAsSender = privateChatRepository.findPrivateChatBySender(userProfile.orElse(null));
         List<PrivateChat> allChatsAsReceiver = privateChatRepository.findPrivateChatByReceiver(userProfile.orElse(null));
         List<PrivateChat> allChats = new ArrayList<>();
         allChats.addAll(allChatsAsSender);
         allChats.addAll(allChatsAsReceiver);
-        return allChats;
+        List<PrivateChatDTO> allChatsDTO = new ArrayList<>();
+        for (PrivateChat privateChat : allChats) {
+            allChatsDTO.add(mapperForDTO.convertPrivateChatToDto(privateChat));
+        }
+        return allChatsDTO;
     }
 
     @Transactional
@@ -87,12 +93,12 @@ public class PrivateChatService {
         PrivateChat savedChat = privateChatRepository.save(privateChat);
         messagingTemplate.convertAndSend(
                 "/topic/chats/" + senderId,
-                convertToDto(savedChat)
+                mapperForDTO.convertPrivateChatToDto(savedChat)
         );
 
         messagingTemplate.convertAndSend(
                 "/topic/chats/" + receiverId,
-                convertToDto(savedChat)
+                mapperForDTO.convertPrivateChatToDto(savedChat)
         );
     }
 
@@ -101,15 +107,6 @@ public class PrivateChatService {
         privateChatRepository.deleteById(id);
     }
 
-    private PrivateChatDTO convertToDto(PrivateChat chat) {
-        PrivateChatDTO dto = new PrivateChatDTO();
-        dto.setId(chat.getId());
-        dto.setSenderId(chat.getSender().getId());
-        dto.setSenderUsername(chat.getSender().getUsername());
-        dto.setReceiverId(chat.getReceiver().getId());
-        dto.setReceiverUsername(chat.getReceiver().getUsername());
-        dto.setCreatedAt(chat.getCreatedAt());
-        return dto;
-    }
+
 
 }

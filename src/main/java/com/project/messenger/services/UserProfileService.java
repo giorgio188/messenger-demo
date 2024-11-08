@@ -38,8 +38,15 @@ public class UserProfileService {
 
     @Transactional
     public void updateUserProfile(int id, UserProfile updatedUserProfile) {
-        updatedUserProfile.setId(id);
-        UserProfile savedProfile = userProfileRepository.save(updatedUserProfile);
+        UserProfile userProfile = getUserProfile(id);
+        if (userProfile != null) {
+            userProfile.setNickname(updatedUserProfile.getNickname());
+            userProfile.setUsername(updatedUserProfile.getUsername());
+            userProfile.setEmail(updatedUserProfile.getEmail());
+            userProfile.setPhoneNumber(updatedUserProfile.getPhoneNumber());
+        }
+
+        UserProfile savedProfile = userProfileRepository.save(userProfile);
         List<UserProfile> friendList = getFriendList(id);
         messagingTemplate.convertAndSend("/topic/user/" + id, savedProfile);
         friendList.forEach(friend ->
@@ -151,11 +158,12 @@ public class UserProfileService {
                 userProfileRepository.save(userProfile);
             }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to delete avatar", e);
+            throw new RuntimeException("Failed to delete avatar" + e.getMessage());
         }
     }
 
     public String getAvatarLink(String fileName) {
         return s3Service.getFileUrl(fileName);
     }
+
 }

@@ -1,5 +1,6 @@
 package com.project.messenger.services.privateChat;
 
+import com.project.messenger.dto.PrivateChatMessageDTO;
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.models.PrivateChatMessage;
 import com.project.messenger.models.UserProfile;
@@ -8,6 +9,7 @@ import com.project.messenger.repositories.PrivateChatMessageRepository;
 import com.project.messenger.repositories.PrivateChatRepository;
 import com.project.messenger.services.EncryptionService;
 import com.project.messenger.services.UserProfileService;
+import com.project.messenger.utils.MapperForDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,13 +32,14 @@ public class PrivateChatMessageService {
     private final EncryptionService encryptionService;
     private final PrivateChatRepository privateChatRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MapperForDTO mapperForDTO;
     private static final String MESSAGE_CACHE_PREFIX = "private chat messages:";
     private static final int CACHE_SIZE = 100;
     private final RedisTemplate redisTemplate;
 
 
     @Transactional
-    public PrivateChatMessage sendMessage(int senderId, int privateChatId, String message) {
+    public PrivateChatMessageDTO sendMessage(int senderId, int privateChatId, String message) {
         PrivateChat privateChat = privateChatRepository.findById(privateChatId)
                 .orElseThrow(() -> new RuntimeException("Чат не найден"));
         UserProfile sender = userProfileService.getUserProfile(senderId);
@@ -58,26 +62,30 @@ public class PrivateChatMessageService {
                 "/queue/private-chat",
                 privateChatMessage
         );
-        return privateChatMessage;
+        return mapperForDTO.convertPrivateMessageToDTO(privateChatMessage);
     }
 
-    public List<PrivateChatMessage> getPrivateChatMessages(int privateChatId) {
-        String cacheKey = MESSAGE_CACHE_PREFIX + privateChatId;
-
-        List<PrivateChatMessage> cachedMessages = (List<PrivateChatMessage>) redisTemplate.opsForList().range(cacheKey, 0, -1);
-        if (cachedMessages != null && !cachedMessages.isEmpty()) {
-            return cachedMessages;
-        }
+    public List<PrivateChatMessageDTO> getPrivateChatMessages(int privateChatId) {
+//        String cacheKey = MESSAGE_CACHE_PREFIX + privateChatId;
+//
+//        List<PrivateChatMessage> cachedMessages = (List<PrivateChatMessage>) redisTemplate.opsForList().range(cacheKey, 0, -1);
+//        if (cachedMessages != null && !cachedMessages.isEmpty()) {
+//            return cachedMessages;
+//        }
 
         List<PrivateChatMessage> messages = privateChatMessageRepository
                 .findByPrivateChatOrderBySentAtDesc(privateChatRepository.findById(privateChatId).get());
+        List<PrivateChatMessageDTO> messagesDTO = new ArrayList<>();
         for (PrivateChatMessage message : messages) {
             String decryptedMessageContent = encryptionService.decrypt(message.getMessage());
             message.setMessage(decryptedMessageContent);
+            PrivateChatMessageDTO messageDTO = mapperForDTO.convertPrivateMessageToDTO(message);
+            messagesDTO.add(messageDTO);
         }
-        redisTemplate.opsForList().rightPushAll(cacheKey, messages);
-        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
-        return messages;
+//        redisTemplate.opsForList().rightPushAll(cacheKey, messages);
+//        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
+
+        return messagesDTO;
     }
 
     @Transactional

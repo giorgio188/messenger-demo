@@ -1,5 +1,7 @@
 package com.project.messenger.services.groupChat;
 
+import com.project.messenger.dto.GroupChatDTO;
+import com.project.messenger.dto.GroupChatMembersDTO;
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMembers;
 import com.project.messenger.models.UserProfile;
@@ -7,6 +9,7 @@ import com.project.messenger.models.enums.Roles;
 import com.project.messenger.repositories.GroupChatMembersRepository;
 import com.project.messenger.repositories.GroupChatRepository;
 import com.project.messenger.repositories.UserProfileRepository;
+import com.project.messenger.utils.MapperForDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -17,6 +20,7 @@ import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class GroupChatService {
     private final GroupChatRepository groupChatRepository;
     private final UserProfileRepository userProfileRepository;
     private final GroupChatMembersRepository groupChatMembersRepository;
+    private final MapperForDTO mapperForDTO;
 
     @Transactional
     public void addUser(int group, int userId, Roles role) {
@@ -50,12 +55,12 @@ public class GroupChatService {
     }
 
 
-    public GroupChat getGroupChat(int groupChatId, int memberId) throws AccessDeniedException {
+    public GroupChatDTO getGroupChat(int groupChatId, int memberId) throws AccessDeniedException {
         GroupChat groupChat = groupChatRepository.findById(groupChatId)
                 .orElseThrow(() -> new EntityNotFoundException("GroupChat not found"));
         boolean isMember = groupChat.getGroupChatMembers().stream().anyMatch(member -> member.getMember().getId() == memberId);
         if (isMember) {
-            return groupChat;
+            return mapperForDTO.convertGroupChatToDTO(groupChat);
 
         } else {
             throw new AccessDeniedException("User is not a participant of this chat");
@@ -92,20 +97,32 @@ public class GroupChatService {
         throw new AccessDeniedException("User is not an admin of this chat");
     }
 
-    public List<GroupChat> getAllGroupChatsByUser(int userId) {
+    public List<GroupChatDTO> getAllGroupChatsByUser(int userId) {
         UserProfile user = userProfileRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found"));
         List<GroupChatMembers> members = groupChatMembersRepository.findByMember(user);
-        List<GroupChat> groupChats = new ArrayList<>();
+        List<GroupChatDTO> groupChatDTOs = new ArrayList<>();
         for (GroupChatMembers groupChatMember : members) {
             GroupChat groupChat = groupChatMember.getGroupChat();
-            GroupChat groupToList = new GroupChat();
-            groupToList.setId(groupChat.getId());
-            groupToList.setName(groupChat.getName());
-            groupToList.setDescription(groupChat.getDescription());
-            groupToList.setCreatedAt(LocalDateTime.now());
-            groupChats.add(groupToList); }
-        return groupChats;
+            GroupChatDTO groupChatDTO = mapperForDTO.convertGroupChatToDTO(groupChat);
+            groupChatDTOs.add(groupChatDTO);
+        }
+        return groupChatDTOs;
     }
+//    public List<GroupChat> getAllGroupChatsByUser(int userId) {
+//        UserProfile user = userProfileRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found"));
+//        List<GroupChatMembers> members = groupChatMembersRepository.findByMember(user);
+//        List<GroupChat> groupChats = new ArrayList<>();
+//        for (GroupChatMembers groupChatMember : members) {
+//            GroupChat groupChat = groupChatMember.getGroupChat();
+//            GroupChat groupToList = new GroupChat();
+//            groupToList.setId(groupChat.getId());
+//            groupToList.setName(groupChat.getName());
+//            groupToList.setDescription(groupChat.getDescription());
+//            groupToList.setCreatedAt(LocalDateTime.now());
+//            groupChats.add(groupToList);
+//        }
+//        return groupChats;
+//    }
 
 //            public List<GroupChat> getAllGroupChatsByUser ( int userId){
 //                UserProfile user = userProfileRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -115,56 +132,58 @@ public class GroupChatService {
 //                        .collect(Collectors.toList());
 //            }
 
-            @Transactional
-            public void deleteGroupChat ( int groupChatId, int userId){
-                if (isCreator(groupChatId, userId)) {
-                    groupChatRepository.deleteById(groupChatId);
-                    List<GroupChatMembers> members = getAllGroupChatMembersByGroupChat(groupChatId);
-                    groupChatMembersRepository.deleteAllByGroupChat(groupChatRepository.findById(groupChatId).get());
-                } else throw new AccessDeniedException("User is not an admin of this chat");
-            }
+    @Transactional
+    public void deleteGroupChat(int groupChatId, int userId) {
+        if (isCreator(groupChatId, userId)) {
+            groupChatRepository.deleteById(groupChatId);
+            List<GroupChatMembers> members = getAllGroupChatMembersByGroupChat(groupChatId);
+            groupChatMembersRepository.deleteAllByGroupChat(groupChatRepository.findById(groupChatId).get());
+        } else throw new AccessDeniedException("User is not an admin of this chat");
+    }
 
-            public List<GroupChatMembers> getAllGroupChatMembersByGroupChat ( int groupChatId){
-                GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
-                List<GroupChatMembers> members = groupChatMembersRepository.findAllByGroupChat(groupChat);
-                return members;
-            }
+    public List<GroupChatMembers> getAllGroupChatMembersByGroupChat(int groupChatId) {
+        GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        List<GroupChatMembers> members = groupChatMembersRepository.findAllByGroupChat(groupChat);
+        return members;
+    }
 
-            @Transactional
-            public void leaveGroupChat ( int groupChatId, int memberId){
-                UserProfile member = userProfileRepository.findById(memberId).get();
-                GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
-                groupChatMembersRepository.deleteByGroupChatAndMember(groupChat, member);
-            }
+    @Transactional
+    public void leaveGroupChat(int groupChatId, int memberId) {
+        UserProfile member = userProfileRepository.findById(memberId).get();
+        GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        groupChatMembersRepository.deleteByGroupChatAndMember(groupChat, member);
+    }
 
-            @Transactional
-            public void setRoleToMember ( int groupChatId, int memberId, Roles role,int adminId){
-                if (isAdmin(groupChatId, adminId)) {
-                    UserProfile member = userProfileRepository.findById(memberId).get();
-                    GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
-                    GroupChatMembers memberToChange = groupChatMembersRepository.findByGroupChatAndMember(groupChat, member);
-                    memberToChange.setRole(role);
-                    groupChatMembersRepository.save(memberToChange);
-                } else throw new AccessDeniedException("User is not an admin of this chat");
-            }
+    @Transactional
+    public void setRoleToMember(int groupChatId, int memberId, Roles role, int adminId) {
+        if (isAdmin(groupChatId, adminId)) {
+            UserProfile member = userProfileRepository.findById(memberId).get();
+            GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+            GroupChatMembers memberToChange = groupChatMembersRepository.findByGroupChatAndMember(groupChat, member);
+            memberToChange.setRole(role);
+            groupChatMembersRepository.save(memberToChange);
+        } else throw new AccessDeniedException("User is not an admin of this chat");
+    }
 
-            private boolean isAdmin ( int groupChatId, int userId){
-                GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
-                GroupChatMembers admin = groupChatMembersRepository.findByGroupChatAndMember(groupChat,
-                        userProfileRepository.findById(userId).get());
-                if (admin.getRole() == Roles.ADMIN || admin.getRole() == Roles.CREATOR) {
-                    return true;
-                } else return false;
-            }
+    private boolean isAdmin(int groupChatId, int userId) {
+        GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        GroupChatMembers admin = groupChatMembersRepository.findByGroupChatAndMember(groupChat,
+                userProfileRepository.findById(userId).get());
+        if (admin.getRole() == Roles.ADMIN || admin.getRole() == Roles.CREATOR) {
+            return true;
+        } else return false;
+    }
 
-            private boolean isCreator ( int groupChatId, int userId){
-                GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
-                GroupChatMembers creator = groupChatMembersRepository.findByGroupChatAndMember(groupChat,
-                        userProfileRepository.findById(userId).get());
-                if (creator.getRole() == Roles.CREATOR) {
-                    return true;
-                } else return false;
-            }
+    private boolean isCreator(int groupChatId, int userId) {
+        GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        GroupChatMembers creator = groupChatMembersRepository.findByGroupChatAndMember(groupChat,
+                userProfileRepository.findById(userId).get());
+        if (creator.getRole() == Roles.CREATOR) {
+            return true;
+        } else return false;
+    }
 
-        }
+
+
+}
 

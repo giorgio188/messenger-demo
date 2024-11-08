@@ -1,5 +1,7 @@
 package com.project.messenger.controllers.privateChat;
 
+import com.project.messenger.dto.PrivateChatDTO;
+import com.project.messenger.dto.PrivateChatMessageDTO;
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.models.PrivateChatMessage;
 import com.project.messenger.security.JWTUtil;
@@ -23,22 +25,22 @@ public class PrivateChatMessageController {
     private final PrivateChatService privateChatService;
 
     @PostMapping("/{privateChatId}")
-    public ResponseEntity<PrivateChatMessage> sendMessage(
+    public ResponseEntity<PrivateChatMessageDTO> sendMessage(
             @RequestHeader("Authorization") String token,
             @PathVariable int privateChatId,
             @RequestParam String message) throws AccessDeniedException {
         int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        PrivateChat chat = privateChatService.getPrivateChat(privateChatId, senderId);
+        PrivateChatDTO chat = privateChatService.getPrivateChat(privateChatId, senderId);
         if (chat == null) {
             throw new AccessDeniedException("У вас нет доступа к этому чату");
         }
-        PrivateChatMessage sentMessage = privateChatMessageService.sendMessage(senderId, privateChatId, message);
+        PrivateChatMessageDTO sentMessage = privateChatMessageService.sendMessage(senderId, privateChatId, message);
         return ResponseEntity.ok(sentMessage);
     }
 
     @GetMapping("/{privateChatId}")
-    public ResponseEntity<List<PrivateChatMessage>> getPrivateChatMessages(@PathVariable int privateChatId) {
-        List<PrivateChatMessage> messages = privateChatMessageService.getPrivateChatMessages(privateChatId);
+    public ResponseEntity<List<PrivateChatMessageDTO>> getPrivateChatMessages(@PathVariable int privateChatId) {
+        List<PrivateChatMessageDTO> messages = privateChatMessageService.getPrivateChatMessages(privateChatId);
         return ResponseEntity.ok(messages);
     }
 
@@ -47,7 +49,6 @@ public class PrivateChatMessageController {
         privateChatMessageService.deletePrivateMessage(messageId);
         return ResponseEntity.ok("Message deleted");
     }
-
 
     @PatchMapping("/{messageId}")
     public ResponseEntity<PrivateChatMessage> editPrivateMessage(

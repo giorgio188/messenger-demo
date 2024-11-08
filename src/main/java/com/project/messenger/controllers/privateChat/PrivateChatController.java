@@ -1,5 +1,6 @@
 package com.project.messenger.controllers.privateChat;
 
+import com.project.messenger.dto.PrivateChatDTO;
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.security.JWTUtil;
 import com.project.messenger.services.privateChat.PrivateChatService;
@@ -21,27 +22,27 @@ public class PrivateChatController {
     private final JWTUtil jwtUtil;
 
     @GetMapping("/{privateChatId}")
-    public ResponseEntity<PrivateChat> getPrivateChat(
+    public ResponseEntity<PrivateChatDTO> getPrivateChat(
             @RequestHeader("Authorization") String token,
             @PathVariable int privateChatId) throws AccessDeniedException {
         int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        PrivateChat privateChat = privateChatService.getPrivateChat(privateChatId, senderId);
+        PrivateChatDTO privateChat = privateChatService.getPrivateChat(privateChatId, senderId);
         return ResponseEntity.ok(privateChat);
     }
 
     @GetMapping("/find")
-    public ResponseEntity<PrivateChat> getPrivateChatBySenderAndReceiver(
+    public ResponseEntity<PrivateChatDTO> getPrivateChatBySenderAndReceiver(
             @RequestHeader("Authorization") String token,
             @RequestParam int receiverId) {
         int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        PrivateChat privateChat = privateChatService.getPrivateChatBySenderAndReceiver(senderId, receiverId);
+        PrivateChatDTO privateChat = privateChatService.getPrivateChatBySenderAndReceiver(senderId, receiverId);
         return ResponseEntity.ok(privateChat);
     }
 
     @GetMapping()
-    public ResponseEntity<List<PrivateChat>> getPrivateChatsOfUser(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<PrivateChatDTO>> getPrivateChatsOfUser(@RequestHeader("Authorization") String token) {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        List<PrivateChat> chats = privateChatService.getAllChatsOfOneUser(userId);
+        List<PrivateChatDTO> chats = privateChatService.getAllChatsOfOneUser(userId);
         return ResponseEntity.ok(chats);
     }
 

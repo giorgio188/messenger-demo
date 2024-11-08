@@ -1,6 +1,7 @@
 package com.project.messenger.controllers.groupChat;
 
 import com.project.messenger.dto.GroupChatCreatingDTO;
+import com.project.messenger.dto.GroupChatDTO;
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMembers;
 import com.project.messenger.models.enums.Roles;
@@ -24,19 +25,19 @@ public class GroupChatController {
     private final JWTUtil jwtUtil;
 
     @GetMapping("/{groupChatId}")
-    public ResponseEntity<GroupChat> getGroupChat(
+    public ResponseEntity<GroupChatDTO> getGroupChat(
             @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId)  throws AccessDeniedException {
         int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        GroupChat groupChat = groupChatService.getGroupChat(groupChatId, memberId);
+        GroupChatDTO groupChat = groupChatService.getGroupChat(groupChatId, memberId);
         return  ResponseEntity.ok(groupChat);
     }
 
     @GetMapping()
-    public ResponseEntity<List<GroupChat>> getGroupChatsByMember(
+    public ResponseEntity<List<GroupChatDTO>> getGroupChatsByMember(
             @RequestHeader("Authorization") String token) {
         int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        List<GroupChat> groupChats = groupChatService.getAllGroupChatsByUser(memberId);
+        List<GroupChatDTO> groupChats = groupChatService.getAllGroupChatsByUser(memberId);
         return  ResponseEntity.ok(groupChats);
     }
 

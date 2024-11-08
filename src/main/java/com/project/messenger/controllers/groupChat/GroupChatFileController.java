@@ -7,6 +7,7 @@ import com.project.messenger.services.groupChat.GroupChatFileService;
 import com.project.messenger.services.groupChat.GroupChatMessageService;
 import com.project.messenger.services.groupChat.GroupChatService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ public class GroupChatFileController {
     private final GroupChatService groupChatService;
     private final JWTUtil jwtUtil;
     private final GroupChatFileService groupChatFileService;
+    private final ModelMapper modelMapper;
 
     @PostMapping("/{groupChatId}")
     public ResponseEntity<GroupChatFiles> sendFile(
@@ -32,7 +34,7 @@ public class GroupChatFileController {
             @PathVariable int groupChatId,
             @RequestParam MultipartFile file) throws IOException {
         int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        GroupChat groupChat = groupChatService.getGroupChat(groupChatId, memberId);
+        GroupChat groupChat = modelMapper.map(groupChatService.getGroupChat(groupChatId, memberId), GroupChat.class);
         if (groupChat == null) {
             throw new AccessDeniedException("Access denied");
         }

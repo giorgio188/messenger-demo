@@ -1,9 +1,11 @@
 package com.project.messenger.controllers;
 
+import com.project.messenger.dto.PasswordDTO;
 import com.project.messenger.dto.UserProfileDTO;
 import com.project.messenger.models.UserProfile;
 import com.project.messenger.repositories.UserProfileRepository;
 import com.project.messenger.security.JWTUtil;
+import com.project.messenger.services.RegistrationService;
 import com.project.messenger.services.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -25,6 +27,7 @@ public class UserProfileController {
     private final JWTUtil jwtUtil;
     private final ModelMapper modelMapper;
     private final UserProfileRepository userProfileRepository;
+    private final RegistrationService registrationService;
 
     @GetMapping("/{userId}")
     public ResponseEntity<UserProfile> getUserProfile(@PathVariable int userId) {
@@ -46,6 +49,13 @@ public class UserProfileController {
         UserProfile updatedUserProfile = modelMapper.map(userProfileDTO, UserProfile.class);
         userProfileService.updateUserProfile(userId, updatedUserProfile);
         return ResponseEntity.ok(updatedUserProfile);
+    }
+
+    @PostMapping("/updatePassword")
+    public void updateUserProfilePassword(@RequestHeader("Authorization") String token,
+                                          @RequestBody PasswordDTO passwordDTO) {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        registrationService.changePassword(userId, passwordDTO.getPassword());
     }
 
     @DeleteMapping("/delete")
@@ -81,7 +91,7 @@ public class UserProfileController {
             return ResponseEntity.ok(avatarURL);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Could not upload avatar");
+                    .body("Could not upload avatar" + e.getMessage());
         }
     }
 

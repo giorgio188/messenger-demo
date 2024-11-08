@@ -11,6 +11,7 @@ import com.project.messenger.services.UserProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,12 +32,13 @@ public class GroupChatFileService {
     private final S3Service s3Service;
     private final String FILE_DIRECTORY = "group-files";
     private final GroupChatFileRepository groupChatFileRepository;
+    private final ModelMapper modelMapper;
 
     @Transactional
     public GroupChatFiles sendFile(int senderId, int groupChatId, MultipartFile file)
             throws IOException {
         UserProfile sender = userProfileService.getUserProfile(senderId);
-        GroupChat groupChat = groupChatService.getGroupChat(groupChatId, senderId);
+        GroupChat groupChat = modelMapper.map(groupChatService.getGroupChat(groupChatId, senderId), GroupChat.class);
         String fileName = s3Service.uploadFile(file, FILE_DIRECTORY);
         FileType fileType = FileType.getByContentType(file.getContentType())
                 .orElseThrow(() -> new RuntimeException("Неподдерживаемый формат файла: " + file.getContentType()));

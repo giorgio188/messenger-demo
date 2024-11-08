@@ -1,5 +1,7 @@
 package com.project.messenger.services.groupChat;
 
+import com.project.messenger.dto.GroupChatDTO;
+import com.project.messenger.dto.GroupChatMessageDTO;
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMessage;
 import com.project.messenger.models.UserProfile;
@@ -9,15 +11,18 @@ import com.project.messenger.repositories.GroupchatMessagesRepository;
 import com.project.messenger.repositories.UserProfileRepository;
 import com.project.messenger.services.EncryptionService;
 import com.project.messenger.services.UserProfileService;
+import com.project.messenger.utils.MapperForDTO;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,16 +38,19 @@ public class GroupChatMessageService {
     private final EncryptionService encryptionService;
     private final GroupchatMessagesRepository groupchatMessagesRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final MapperForDTO mapperForDTO;
     private static final String MESSAGE_CACHE_PREFIX = "group chat messages:";
     private static final int CACHE_SIZE = 100;
     private final GroupChatRepository groupChatRepository;
+    private final ModelMapper modelMapper;
     private RedisTemplate redisTemplate;
 
 
     @Transactional
-    public GroupChatMessage sendMessage(int senderId, int groupChatId, String message) {
+    public GroupChatMessageDTO sendMessage(int senderId, int groupChatId, String message) {
         UserProfile sender = userProfileService.getUserProfile(senderId);
-        GroupChat groupChat = groupChatService.getGroupChat(groupChatId, senderId);
+        GroupChat groupChat = modelMapper.map(groupChatService.getGroupChat(groupChatId, senderId), GroupChat.class);
+
         String encryptedMessage = encryptionService.encrypt(message);
 
         GroupChatMessage groupChatMessage = new GroupChatMessage(
@@ -63,31 +71,32 @@ public class GroupChatMessageService {
 
 //        уведомляем о сообщении через вебсокет
         messagingTemplate.convertAndSend("/queue/group-chat" + groupChat.getId(), groupChatMessage);
-        return groupChatMessage;
+        return mapperForDTO.convertGroupChatMessageToDTO(groupChatMessage);
     }
 
-    public List<GroupChatMessage> getGroupChatMessages(int groupChatId) {
-        String cacheKey = MESSAGE_CACHE_PREFIX + groupChatId;
-
-        List<GroupChatMessage> cachedMessages = (List<GroupChatMessage>) redisTemplate.opsForList().range(cacheKey, 0, -1);
-        if (cachedMessages != null && !cachedMessages.isEmpty()) {
-            return cachedMessages;
-        }
+    public List<GroupChatMessageDTO> getGroupChatMessages(int groupChatId) {
+//        String cacheKey = MESSAGE_CACHE_PREFIX + groupChatId;
+//
+//        List<GroupChatMessage> cachedMessages = (List<GroupChatMessage>) redisTemplate.opsForList().range(cacheKey, 0, -1);
+//        if (cachedMessages != null && !cachedMessages.isEmpty()) {
+//            return cachedMessages;
+//        }
 
         List<GroupChatMessage> messages = groupchatMessagesRepository
                 .findByGroupChatOrderBySentAtDesc(groupChatRepository.findById(groupChatId).get());
+        List<GroupChatMessageDTO> messagesDTO = new ArrayList<>();
         for (GroupChatMessage message : messages) {
             String decryptedMessageContent = encryptionService.decrypt(message.getMessage());
             message.setMessage(decryptedMessageContent);
-
             if (message.getStatus() == MessageStatus.SENT) {
                 message.setStatus(MessageStatus.READ);
                 groupchatMessagesRepository.save(message);
             }
+            messagesDTO.add(mapperForDTO.convertGroupChatMessageToDTO(message));
         }
-        redisTemplate.opsForList().rightPushAll(cacheKey, messages);
-        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
-        return messages;
+//        redisTemplate.opsForList().rightPushAll(cacheKey, messages);
+//        redisTemplate.opsForList().trim(cacheKey, 0, CACHE_SIZE - 1);
+        return messagesDTO;
     }
 
     @Transactional
