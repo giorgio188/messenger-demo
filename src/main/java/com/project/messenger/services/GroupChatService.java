@@ -1,7 +1,6 @@
-package com.project.messenger.services.groupChat;
+package com.project.messenger.services;
 
 import com.project.messenger.dto.GroupChatDTO;
-import com.project.messenger.dto.GroupChatMembersDTO;
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMembers;
 import com.project.messenger.models.UserProfile;
@@ -20,7 +19,6 @@ import java.time.LocalDateTime;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -108,29 +106,6 @@ public class GroupChatService {
         }
         return groupChatDTOs;
     }
-//    public List<GroupChat> getAllGroupChatsByUser(int userId) {
-//        UserProfile user = userProfileRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found"));
-//        List<GroupChatMembers> members = groupChatMembersRepository.findByMember(user);
-//        List<GroupChat> groupChats = new ArrayList<>();
-//        for (GroupChatMembers groupChatMember : members) {
-//            GroupChat groupChat = groupChatMember.getGroupChat();
-//            GroupChat groupToList = new GroupChat();
-//            groupToList.setId(groupChat.getId());
-//            groupToList.setName(groupChat.getName());
-//            groupToList.setDescription(groupChat.getDescription());
-//            groupToList.setCreatedAt(LocalDateTime.now());
-//            groupChats.add(groupToList);
-//        }
-//        return groupChats;
-//    }
-
-//            public List<GroupChat> getAllGroupChatsByUser ( int userId){
-//                UserProfile user = userProfileRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("User not found"));
-//                List<GroupChatMembers> members = groupChatMembersRepository.findByMember(user);
-//                return members.stream()
-//                        .map(GroupChatMembers::getGroupChat)
-//                        .collect(Collectors.toList());
-//            }
 
     @Transactional
     public void deleteGroupChat(int groupChatId, int userId) {

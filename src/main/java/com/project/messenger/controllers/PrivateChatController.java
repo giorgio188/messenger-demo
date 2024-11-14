@@ -1,18 +1,21 @@
-package com.project.messenger.controllers.privateChat;
+package com.project.messenger.controllers;
 
 import com.project.messenger.dto.PrivateChatDTO;
 import com.project.messenger.dto.UserUtilDTO;
-import com.project.messenger.models.PrivateChat;
 import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.UserProfileService;
-import com.project.messenger.services.privateChat.PrivateChatService;
+import com.project.messenger.services.PrivateChatMessageService;
+import com.project.messenger.services.PrivateChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,7 +25,7 @@ public class PrivateChatController {
 
     private final PrivateChatService privateChatService;
     private final JWTUtil jwtUtil;
-    private final UserProfileService userProfileService;
+    private final PrivateChatMessageService privateChatMessageService;
 
     @GetMapping("/{privateChatId}")
     public ResponseEntity<PrivateChatDTO> getPrivateChat(
@@ -68,5 +71,21 @@ public class PrivateChatController {
     public String deletePrivateChat(@PathVariable int privateChatId) {
         privateChatService.deletePrivateChat(privateChatId);
         return "redirect:/all";
+    }
+
+    // WebSocket endpoint для входа пользователя в чат
+    @MessageMapping("/private.enter")
+    public void handleChatEnter(@Payload Map<String, Object> payload,
+                                SimpMessageHeaderAccessor headerAccessor) {
+        String token = headerAccessor.getFirstNativeHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+            int privateChatId = (Integer) payload.get("privateChatId");
+            try {
+                privateChatMessageService.markMessagesAsRead(privateChatId, userId);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to mark messages as read: " + e.getMessage());
+            }
+        }
     }
 }

@@ -22,9 +22,9 @@ import java.util.*;
 public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
-    private final FriendListRepository friendListRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final S3Service s3Service;
+    private final FriendListService friendListService;
     private static final String AVATAR_DIRECTORY = "avatars";
 
     public UserProfile getUserProfile(int id) {
@@ -47,7 +47,7 @@ public class UserProfileService {
         }
 
         UserProfile savedProfile = userProfileRepository.save(userProfile);
-        List<UserProfile> friendList = getFriendList(id);
+        List<UserProfile> friendList = friendListService.getFriendList(id);
         messagingTemplate.convertAndSend("/topic/user/" + id, savedProfile);
         friendList.forEach(friend ->
                 messagingTemplate.convertAndSend("/topic/user/" + friend.getId() + "/friend-update", savedProfile)
@@ -57,72 +57,6 @@ public class UserProfileService {
     @Transactional
     public void deleteUserProfile(int id) {
         userProfileRepository.deleteById(id);
-    }
-
-    @Transactional
-    public void addFriend(int userId, int friendId) {
-        Optional<UserProfile> user = userProfileRepository.findById(userId);
-        Optional<UserProfile> friend = userProfileRepository.findById(friendId);
-        FriendList friendList = new FriendList(user.get(), friend.get(), LocalDateTime.now());
-        friendListRepository.save(friendList);
-
-        messagingTemplate.convertAndSend(
-                "/topic/friends/" + userId,
-                getFriendList(userId)
-        );
-
-        messagingTemplate.convertAndSend(
-                "/topic/friends/" + friendId,
-                getFriendList(friendId)
-        );
-    }
-
-
-    public List<UserProfile> getFriendList(int userId) {
-        UserProfile userProfile = userProfileRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        List<FriendList> friendsAsUser = friendListRepository.findByUserId(userProfile);
-        List<FriendList> friendsAsFriend = friendListRepository.findByFriendId(userProfile);
-        Set<UserProfile> friendsSet = new HashSet<>();
-        friendsAsUser.forEach(friendList -> friendsSet.add(friendList.getFriendId()));
-        friendsAsFriend.forEach(friendList -> friendsSet.add(friendList.getUserId()));
-        return new ArrayList<>(friendsSet);
-    }
-
-    @Transactional
-    public void deleteFriend(int userId, int friendToBeDeleted) {
-        Optional<UserProfile> userProfile = userProfileRepository.findById(userId);
-        Optional<UserProfile> friend = userProfileRepository.findById(friendToBeDeleted);
-        friendListRepository.deleteByUserIdAndFriendId(userProfile, friend);
-        friendListRepository.deleteByUserIdAndFriendId(friend, userProfile);
-
-        messagingTemplate.convertAndSend(
-                "/topic/friends/" + userId,
-                getFriendList(userId)
-        );
-
-        messagingTemplate.convertAndSend(
-                "/topic/friends/" + friendToBeDeleted,
-                getFriendList(friendToBeDeleted)
-        );
-    }
-
-    @Transactional
-    public void setUserOnlineStatus(int id, ProfileStatus status) {
-        Optional<UserProfile> userProfile = userProfileRepository.findById(id);
-        if (userProfile.isPresent()) {
-            UserProfile user = userProfile.get();
-            user.setStatus(status);
-            UserProfile savedProfile = userProfileRepository.save(user);
-
-            // Получаем список друзей пользователя
-            List<UserProfile> friendList = getFriendList(id);
-
-            // Отправляем обновление статуса всем друзьям пользователя
-            friendList.forEach(friend ->
-                    messagingTemplate.convertAndSend("/topic/user/" + friend.getId() + "/friend-update", savedProfile)
-            );
-        }
     }
 
     @Transactional
@@ -164,6 +98,56 @@ public class UserProfileService {
 
     public String getAvatarLink(String fileName) {
         return s3Service.getFileUrl(fileName);
+    }
+
+    @Transactional
+    public void setUserOnlineStatus(int id, ProfileStatus status) {
+        Optional<UserProfile> userProfile = userProfileRepository.findById(id);
+        if (userProfile.isPresent()) {
+            UserProfile user = userProfile.get();
+            user.setStatus(status);
+            UserProfile savedProfile = userProfileRepository.save(user);
+
+            // Создаем уведомление о смене статуса
+            Map<String, Object> statusNotification = new HashMap<>();
+            statusNotification.put("type", "STATUS_CHANGED");
+            statusNotification.put("userId", id);
+            statusNotification.put("newStatus", status);
+            statusNotification.put("timestamp", LocalDateTime.now());
+
+            // Отправляем уведомление самому пользователю
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(id),
+                    "/queue/status",
+                    statusNotification
+            );
+
+            // Получаем список друзей пользователя и отправляем им уведомление
+            List<UserProfile> friendList = friendListService.getFriendList(id);
+            friendList.forEach(friend ->
+                    messagingTemplate.convertAndSendToUser(
+                            String.valueOf(friend.getId()),
+                            "/queue/friends/status",
+                            statusNotification
+                    )
+            );
+
+            log.info("User {} status changed to {}", id, status);
+        }
+    }
+
+    // Метод для обработки отключения пользователя при разрыве WebSocket соединения
+    @Transactional
+    public void handleWebSocketDisconnect(int userId) {
+        setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
+        log.info("User {} disconnected from WebSocket", userId);
+    }
+
+    // Метод для обработки подключения пользователя при установке WebSocket соединения
+    @Transactional
+    public void handleWebSocketConnect(int userId) {
+        setUserOnlineStatus(userId, ProfileStatus.ONLINE);
+        log.info("User {} connected via WebSocket", userId);
     }
 
 }

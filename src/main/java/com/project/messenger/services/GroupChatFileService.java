@@ -1,4 +1,4 @@
-package com.project.messenger.services.groupChat;
+package com.project.messenger.services;
 
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatFiles;
@@ -6,19 +6,20 @@ import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.FileType;
 import com.project.messenger.repositories.GroupChatFileRepository;
 import com.project.messenger.repositories.GroupChatRepository;
-import com.project.messenger.services.S3Service;
-import com.project.messenger.services.UserProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class GroupChatFileService {
     private final String FILE_DIRECTORY = "group-files";
     private final GroupChatFileRepository groupChatFileRepository;
     private final ModelMapper modelMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public GroupChatFiles sendFile(int senderId, int groupChatId, MultipartFile file)
@@ -50,16 +52,45 @@ public class GroupChatFileService {
                 fileName,
                 fileType
         );
-        groupChatFileRepository.save(newFile);
-        return newFile;
+        GroupChatFiles savedFile = groupChatFileRepository.save(newFile);
+
+        // Создаем уведомление о новом файле
+        Map<String, Object> fileNotification = new HashMap<>();
+        fileNotification.put("type", "FILE_UPLOADED");
+        fileNotification.put("fileId", savedFile.getId());
+        fileNotification.put("fileName", file.getOriginalFilename());
+        fileNotification.put("fileType", fileType);
+        fileNotification.put("senderId", senderId);
+        fileNotification.put("timestamp", LocalDateTime.now());
+        fileNotification.put("url", s3Service.getFileUrl(fileName));
+
+        // Отправляем уведомление всем участникам группы
+        messagingTemplate.convertAndSend(
+                "/topic/group-file/" + groupChatId,
+                fileNotification
+        );
+
+        return savedFile;
     }
 
     @Transactional
     public void deleteFile(int fileId){
         GroupChatFiles file = groupChatFileRepository.findById(fileId).orElse(null);
         if(file != null){
+            int groupChatId = file.getGroupChat().getId();
             groupChatFileRepository.delete(file);
             s3Service.deleteFile(file.getFileName());
+            // Создаем уведомление об удалении файла
+            Map<String, Object> deleteNotification = new HashMap<>();
+            deleteNotification.put("type", "FILE_DELETED");
+            deleteNotification.put("fileId", fileId);
+            deleteNotification.put("timestamp", LocalDateTime.now());
+
+            // Отправляем уведомление всем участникам группы
+            messagingTemplate.convertAndSend(
+                    "/topic/group-file/" + groupChatId,
+                    deleteNotification
+            );
         }
     }
 

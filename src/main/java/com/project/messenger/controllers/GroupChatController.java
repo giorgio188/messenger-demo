@@ -1,4 +1,4 @@
-package com.project.messenger.controllers.groupChat;
+package com.project.messenger.controllers;
 
 import com.project.messenger.dto.GroupChatCreatingDTO;
 import com.project.messenger.dto.GroupChatDTO;
@@ -6,14 +6,17 @@ import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatMembers;
 import com.project.messenger.models.enums.Roles;
 import com.project.messenger.security.JWTUtil;
-import com.project.messenger.services.groupChat.GroupChatService;
+import com.project.messenger.services.GroupChatMessageService;
+import com.project.messenger.services.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
-
-import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RequestMapping("api/group-chat")
 @RestController
@@ -23,11 +26,12 @@ public class GroupChatController {
 
     private final GroupChatService groupChatService;
     private final JWTUtil jwtUtil;
+    private final GroupChatMessageService groupChatMessageService;
 
     @GetMapping("/{groupChatId}")
     public ResponseEntity<GroupChatDTO> getGroupChat(
             @RequestHeader("Authorization") String token,
-            @PathVariable int groupChatId)  throws AccessDeniedException {
+            @PathVariable int groupChatId){
         int memberId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         GroupChatDTO groupChat = groupChatService.getGroupChat(groupChatId, memberId);
         return  ResponseEntity.ok(groupChat);
@@ -61,7 +65,7 @@ public class GroupChatController {
         return "redirect:/all";
     }
 
-    @PatchMapping("/{groupChatId}/edit-descrip")
+    @PatchMapping("/{groupChatId}/edit-description")
     public ResponseEntity<GroupChat> editGroupChatDescription(
             @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
@@ -96,10 +100,10 @@ public class GroupChatController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/{groupChatId}/change-role")
+    @PatchMapping("/{groupChatId}/change-role/{memberId}")
     public ResponseEntity<?> changeRole(@RequestHeader("Authorization") String token,
                                                        @PathVariable int groupChatId,
-                                                       @RequestParam int memberId,
+                                                       @PathVariable int memberId,
                                                        @RequestParam Roles role) {
         groupChatService.setRoleToMember(groupChatId, memberId, role, jwtUtil.extractUserId(token));
         return ResponseEntity.ok().build();
@@ -118,6 +122,22 @@ public class GroupChatController {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         groupChatService.leaveGroupChat(groupChatId, userId);
         return ResponseEntity.ok().build();
+    }
+
+    @MessageMapping("/group.enter")
+    public void handleChatEnter(@Payload Map<String, Object> payload,
+                                SimpMessageHeaderAccessor headerAccessor) {
+        String token = headerAccessor.getFirstNativeHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+            int groupChatId = (Integer) payload.get("groupChatId");
+
+            try {
+                groupChatMessageService.markMessagesAsRead(groupChatId, userId);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to mark messages as read: " + e.getMessage());
+            }
+        }
     }
 
 }

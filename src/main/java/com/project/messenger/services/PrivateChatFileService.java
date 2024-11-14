@@ -1,4 +1,4 @@
-package com.project.messenger.services.privateChat;
+package com.project.messenger.services;
 
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.models.PrivateChatFiles;
@@ -6,16 +6,17 @@ import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.FileType;
 import com.project.messenger.repositories.PrivateChatFileRepository;
 import com.project.messenger.repositories.PrivateChatRepository;
-import com.project.messenger.services.S3Service;
-import com.project.messenger.services.UserProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -28,6 +29,8 @@ public class PrivateChatFileService {
     private final PrivateChatRepository privateChatRepository;
     private final UserProfileService userProfileService;
     private static final String FILE_DIRECTORY = "private-files";
+    private final SimpMessagingTemplate messagingTemplate;
+
 
 
     public List<PrivateChatFiles> getPrivateChatFiles(int privateChatId) {
@@ -51,17 +54,63 @@ public class PrivateChatFileService {
         PrivateChatFiles privateChatFiles = new PrivateChatFiles(privateChat, sender, receiver,
                 LocalDateTime.now(), filePath, fileType);
         FileType.getByContentType(file.getContentType());
-        privateChatFileRepository.save(privateChatFiles);
-        return privateChatFiles;
+        PrivateChatFiles savedFile = privateChatFileRepository.save(privateChatFiles);
+
+        // Создаем уведомление о новом файле
+        Map<String, Object> fileNotification = new HashMap<>();
+        fileNotification.put("type", "FILE_UPLOADED");
+        fileNotification.put("fileId", savedFile.getId());
+        fileNotification.put("fileName", file.getOriginalFilename());
+        fileNotification.put("fileType", fileType);
+        fileNotification.put("senderId", senderId);
+        fileNotification.put("timestamp", LocalDateTime.now());
+        fileNotification.put("url", s3Service.getFileUrl(filePath));
+
+        // Отправляем уведомление отправителю
+        messagingTemplate.convertAndSendToUser(
+                String.valueOf(senderId),
+                "/queue/private-file/" + privateChatId,
+                fileNotification
+        );
+
+        // Отправляем уведомление получателю
+        messagingTemplate.convertAndSendToUser(
+                String.valueOf(receiver.getId()),
+                "/queue/private-file/" + privateChatId,
+                fileNotification
+        );
+
+        return savedFile;
     }
 
     @Transactional
     public void deletePrivateChatFile(int fileId) {
         Optional<PrivateChatFiles> privateChatFile = privateChatFileRepository.findById(fileId);
         if (privateChatFile.isPresent()) {
+            PrivateChatFiles file = privateChatFile.get();
             String fileName = privateChatFile.get().getFileName();
             s3Service.deleteFile(fileName);
             privateChatFileRepository.delete(privateChatFile.get());
+            // Создаем уведомление об удалении файла
+            Map<String, Object> deleteNotification = new HashMap<>();
+            deleteNotification.put("type", "FILE_DELETED");
+            deleteNotification.put("fileId", fileId);
+            deleteNotification.put("timestamp", LocalDateTime.now());
+
+            // Отправляем уведомление обоим участникам чата
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(file.getSender().getId()),
+                    "/queue/private-file/" + file.getPrivateChat().getId(),
+                    deleteNotification
+            );
+
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(file.getReceiver().getId()),
+                    "/queue/private-file/" + file.getPrivateChat().getId(),
+                    deleteNotification
+            );
+
+            privateChatFileRepository.delete(file);
         } else throw new EntityNotFoundException("File with id " + fileId + " not found");
     }
 

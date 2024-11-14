@@ -1,7 +1,6 @@
-package com.project.messenger.services.privateChat;
+package com.project.messenger.services;
 
 import com.project.messenger.dto.PrivateChatDTO;
-import com.project.messenger.dto.UserProfileDTO;
 import com.project.messenger.dto.UserUtilDTO;
 import com.project.messenger.models.PrivateChat;
 import com.project.messenger.models.UserProfile;

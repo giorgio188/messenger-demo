@@ -39,8 +39,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/**", "error").permitAll()
                         .requestMatchers("/api/private-chat/**", "/api/user/**", "/api/group-chat/**",
-                                "/ws/**", "/api/private-message/**", "api/group-message/**",
-                                "api/group-file/**", "api/private-file/**")
+                                "api/friends/**", "/api/private-message/**", "api/group-message/**",
+                                "api/group-file/**", "api/private-file/**", "/ws/**")
                         .permitAll()
                         .anyRequest().authenticated()
                 )

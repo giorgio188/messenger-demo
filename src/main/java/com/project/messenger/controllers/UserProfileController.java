@@ -3,6 +3,7 @@ package com.project.messenger.controllers;
 import com.project.messenger.dto.PasswordDTO;
 import com.project.messenger.dto.UserProfileDTO;
 import com.project.messenger.models.UserProfile;
+import com.project.messenger.models.enums.ProfileStatus;
 import com.project.messenger.repositories.UserProfileRepository;
 import com.project.messenger.security.JWTUtil;
 import com.project.messenger.services.RegistrationService;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -66,13 +69,6 @@ public class UserProfileController {
         return "redirect:/index";
     }
 
-    @GetMapping("/friendList")
-    public ResponseEntity<List<UserProfile>> getFriendList(@RequestHeader("Authorization") String token) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        List<UserProfile> friendList = userProfileService.getFriendList(userId);
-        return ResponseEntity.ok(friendList);
-    }
-
     @GetMapping("/search") public ResponseEntity<List<UserProfile>> searchUsers(@RequestParam String query) {
         List<UserProfile> searchResults = userProfileService.searchUsers(query);
         return ResponseEntity.ok(searchResults);
@@ -102,36 +98,37 @@ public class UserProfileController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/avatar")
-    public ResponseEntity<String> getCurrentUserAvatarLink(@RequestHeader("Authorization") String token) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+    @GetMapping("/{userId}/avatar")
+    public ResponseEntity<String> getAnyUserAvatarLink(@PathVariable int userId) {
         String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
         String avatarLink = userProfileService.getAvatarLink(avatarFileName);
         return ResponseEntity.ok(avatarLink);
     }
-
-    @GetMapping("/{anyUserId}/avatar")
-    public ResponseEntity<String> getAnyUserAvatarLink(@PathVariable int anyUserId) {
-        String avatarFileName = userProfileRepository.findById(anyUserId).get().getAvatar();
-        String avatarLink = userProfileService.getAvatarLink(avatarFileName);
-        return ResponseEntity.ok(avatarLink);
+    // WebSocket endpoint для обработки подключения пользователя
+    @MessageMapping("/user.connect")
+    public void handleUserConnect(SimpMessageHeaderAccessor headerAccessor) {
+        String token = headerAccessor.getFirstNativeHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+            userProfileService.setUserOnlineStatus(userId, ProfileStatus.ONLINE);
+        }
     }
 
-    @PostMapping("/addFriend")
-    @ResponseStatus(HttpStatus.FOUND)
-    public String addFriend (@RequestHeader("Authorization") String token,
-                                       @RequestParam int friendId) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        userProfileService.addFriend(userId, friendId);
-        return "redirect:/friendList";
+    // WebSocket endpoint для обработки отключения пользователя
+    @MessageMapping("/user.disconnect")
+    public void handleUserDisconnect(SimpMessageHeaderAccessor headerAccessor) {
+        String token = headerAccessor.getFirstNativeHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+            userProfileService.setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
+        }
     }
 
-    @DeleteMapping("/deleteFriend")
-    @ResponseStatus(HttpStatus.FOUND)
-    public String deleteFriend (@RequestHeader("Authorization") String token,
-                             @RequestParam int friendId) {
-        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        userProfileService.deleteFriend(userId, friendId);
-        return "redirect:/friendList";
-    }
 }
+//    @GetMapping("/avatar")
+//    public ResponseEntity<String> getCurrentUserAvatarLink(@RequestHeader("Authorization") String token) {
+//        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+//        String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
+//        String avatarLink = userProfileService.getAvatarLink(avatarFileName);
+//        return ResponseEntity.ok(avatarLink);
+//    }
