@@ -16,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/friends")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class FriendListController {
 
     private final FriendListService friendListService;
