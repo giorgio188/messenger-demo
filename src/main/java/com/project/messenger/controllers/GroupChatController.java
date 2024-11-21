@@ -21,6 +21,7 @@ import java.util.Map;
 @RequestMapping("api/group-chat")
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000")
 public class GroupChatController {
 
 
