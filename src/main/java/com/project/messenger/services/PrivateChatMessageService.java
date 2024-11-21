@@ -63,6 +63,11 @@ public class PrivateChatMessageService {
                 messageDTO
         );
 
+        messagingTemplate.convertAndSend(
+                "/topic/private-message." + privateChatId, // меняем формат топика
+                messageDTO
+        );
+
         return mapperForDTO.convertPrivateMessageToDTO(privateChatMessage);
     }
 

@@ -57,7 +57,7 @@ public class GroupChatMessageService {
 
         // Изменен путь с group-chat на group-message
         messagingTemplate.convertAndSend(
-                "/topic/group-message/" + groupChatId,
+                "/topic/group-message." + groupChatId,
                 messageDTO
         );
 
