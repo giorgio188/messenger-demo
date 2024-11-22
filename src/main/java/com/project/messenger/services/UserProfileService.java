@@ -7,6 +7,7 @@ import com.project.messenger.repositories.FriendListRepository;
 import com.project.messenger.repositories.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.XSlf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,10 +69,9 @@ public class UserProfileService {
     public String uploadAvatar(int userId, MultipartFile file) {
         UserProfile userProfile = getUserProfile(userId);
         try {
-            if (!userProfile.getAvatar().isEmpty() && userProfile.getAvatar() != null) {
+            if (userProfile.getAvatar() != null && !userProfile.getAvatar().isEmpty()) {
                 s3Service.deleteFile(userProfile.getAvatar());
             }
-
             String fileName = s3Service.uploadFile(file, AVATAR_DIRECTORY);
             userProfile.setAvatar(fileName);
             userProfileRepository.save(userProfile);
