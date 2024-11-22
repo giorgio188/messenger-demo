@@ -38,7 +38,7 @@ public class S3Service {
             s3Client.putObject(request);
             return fileName;
         } catch (IOException e) {
-            throw new RuntimeException("Failed to upload file to S3", e);
+            throw new RuntimeException("Failed to upload file to S3" + e.getMessage());
         }
     }
 
@@ -61,7 +61,7 @@ public class S3Service {
             }
         }
         if (extension.isEmpty()) {
-            throw new IllegalArgumentException("Could not determine file extension");
+            throw new IllegalArgumentException("Could not determine file extension" + extension);
         }
         return directory + "/" + UUID.randomUUID() + extension;
     }

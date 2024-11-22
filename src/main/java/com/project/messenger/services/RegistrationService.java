@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -29,7 +30,11 @@ public class RegistrationService {
     }
 
     @Transactional
-    public void changePassword(UserProfile userProfile) {
-        userProfile.setPassword(passwordEncoder.encode(userProfile.getPassword()));
+    public void changePassword(int userId, String newPassword) {
+        Optional<UserProfile> userProfile = userProfileRepository.findById(userId);
+        if (userProfile.isPresent()) {
+            userProfile.get().setPassword(passwordEncoder.encode(newPassword));
+            userProfileRepository.save(userProfile.get());
+        }
     }
 }
