@@ -36,13 +36,22 @@ public class PrivateChatController {
         return ResponseEntity.ok(privateChat);
     }
 
-    @GetMapping("/find")
+    @GetMapping("/find/{receiverId}")
     public ResponseEntity<PrivateChatDTO> getPrivateChatBySenderAndReceiver(
             @RequestHeader("Authorization") String token,
-            @RequestParam int receiverId) {
-        int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
-        PrivateChatDTO privateChat = privateChatService.getPrivateChatBySenderAndReceiver(senderId, receiverId);
-        return ResponseEntity.ok(privateChat);
+            @PathVariable int receiverId) {
+        try {
+            int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+            PrivateChatDTO privateChat = privateChatService.getPrivateChatBySenderAndReceiver(senderId, receiverId);
+            if (privateChat == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+            return ResponseEntity.ok(privateChat);
+        } catch (Exception e) {
+            // Логируем ошибку для дальнейшего анализа
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping()
@@ -58,8 +67,9 @@ public class PrivateChatController {
         return ResponseEntity.ok(privateChatMembers);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<PrivateChatDTO> createPrivateChat(@RequestHeader("Authorization") String token, @RequestParam int receiverId) {
+    @PostMapping("/create/{receiverId}")
+    public ResponseEntity<PrivateChatDTO> createPrivateChat(@RequestHeader("Authorization") String token,
+                                                            @PathVariable int receiverId) {
         int senderId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         privateChatService.createPrivateChat(senderId, receiverId);
         PrivateChatDTO privateChat = privateChatService.getPrivateChatBySenderAndReceiver(senderId, receiverId);

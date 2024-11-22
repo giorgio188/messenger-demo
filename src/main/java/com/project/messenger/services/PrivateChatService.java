@@ -36,10 +36,7 @@ public class PrivateChatService {
 
         PrivateChat privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(sender, receiver);
         if (privateChat == null) {
-            privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(receiver, sender);
-        }
-        if (privateChat == null) {
-            throw new EntityNotFoundException("Private chat not found");
+            return null;
         }
         return mapperForDTO.convertPrivateChatToDto(privateChat);
     }
