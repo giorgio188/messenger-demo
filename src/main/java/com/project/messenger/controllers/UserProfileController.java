@@ -98,7 +98,15 @@ public class UserProfileController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{userId}/avatar")
+    @GetMapping("/avatar")
+    public ResponseEntity<String> getUserAvatar(@RequestHeader("Authorization") String token) {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
+        String avatarLink = userProfileService.getAvatarLink(avatarFileName);
+        return ResponseEntity.ok(avatarLink);
+    }
+
+    @GetMapping("/avatar/{userId}")
     public ResponseEntity<String> getAnyUserAvatarLink(@PathVariable int userId) {
         String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
         String avatarLink = userProfileService.getAvatarLink(avatarFileName);
