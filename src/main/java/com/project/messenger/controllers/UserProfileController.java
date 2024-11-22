@@ -63,10 +63,10 @@ public class UserProfileController {
 
     @DeleteMapping("/delete")
     @ResponseStatus(HttpStatus.FOUND)
-    public String deleteUserProfile(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<HttpStatus> deleteUserProfile(@RequestHeader("Authorization") String token) {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         userProfileService.deleteUserProfile(userId);
-        return "redirect:/index";
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @GetMapping("/search") public ResponseEntity<List<UserProfile>> searchUsers(@RequestParam String query) {
