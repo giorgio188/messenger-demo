@@ -77,8 +77,9 @@ public class PrivateChatController {
     }
 
     @DeleteMapping("/{privateChatId}")
-    public void deletePrivateChat(@PathVariable int privateChatId) {
+    public ResponseEntity<HttpStatus> deletePrivateChat(@PathVariable int privateChatId) {
         privateChatService.deletePrivateChat(privateChatId);
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 
     // WebSocket endpoint для входа пользователя в чат

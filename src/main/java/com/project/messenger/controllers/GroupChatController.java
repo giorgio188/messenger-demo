@@ -59,11 +59,10 @@ public class GroupChatController {
     }
 
     @DeleteMapping("/{groupChatId}")
-    @ResponseStatus(HttpStatus.FOUND)
-    public String deleteGroupChat(@RequestHeader("Authorization") String token,
+    public ResponseEntity<HttpStatus> deleteGroupChat(@RequestHeader("Authorization") String token,
                                   @PathVariable int groupChatId) {
         groupChatService.deleteGroupChat(groupChatId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
-        return "redirect:/all";
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @PatchMapping("/{groupChatId}/edit-description")
