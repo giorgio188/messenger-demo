@@ -111,9 +111,9 @@ public class GroupChatService {
     @Transactional
     public void deleteGroupChat(int groupChatId, int userId) {
         if (isCreator(groupChatId, userId)) {
-            groupChatRepository.deleteById(groupChatId);
-            List<GroupChatMembers> members = getAllGroupChatMembersByGroupChat(groupChatId);
             groupChatMembersRepository.deleteAllByGroupChat(groupChatRepository.findById(groupChatId).get());
+            groupChatRepository.deleteById(groupChatId);
+//            List<GroupChatMembers> members = getAllGroupChatMembersByGroupChat(groupChatId);
         } else throw new AccessDeniedException("User is not an admin of this chat");
     }
 
