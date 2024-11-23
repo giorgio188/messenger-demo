@@ -84,7 +84,7 @@ public class GroupChatController {
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/{groupChatId}/delete-user")
+    @DeleteMapping("/{groupChatId}/delete-user")
     public ResponseEntity<GroupChat> deleteUser(
             @RequestHeader("Authorization") String token,
             @PathVariable int groupChatId,
@@ -106,7 +106,7 @@ public class GroupChatController {
                                                        @PathVariable int groupChatId,
                                                        @PathVariable int memberId,
                                                        @RequestParam Roles role) {
-        groupChatService.setRoleToMember(groupChatId, memberId, role, jwtUtil.extractUserId(token));
+        groupChatService.setRoleToMember(groupChatId, memberId, role, jwtUtil.extractUserId(token.replace("Bearer ", "")));
         return ResponseEntity.ok().build();
     }
 
