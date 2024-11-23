@@ -77,10 +77,8 @@ public class PrivateChatController {
     }
 
     @DeleteMapping("/{privateChatId}")
-    @ResponseStatus(HttpStatus.FOUND)
-    public String deletePrivateChat(@PathVariable int privateChatId) {
+    public void deletePrivateChat(@PathVariable int privateChatId) {
         privateChatService.deletePrivateChat(privateChatId);
-        return "redirect:/all";
     }
 
     // WebSocket endpoint для входа пользователя в чат
