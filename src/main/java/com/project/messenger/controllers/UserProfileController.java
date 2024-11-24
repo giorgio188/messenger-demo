@@ -63,10 +63,10 @@ public class UserProfileController {
 
     @DeleteMapping("/delete")
     @ResponseStatus(HttpStatus.FOUND)
-    public String deleteUserProfile(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<HttpStatus> deleteUserProfile(@RequestHeader("Authorization") String token) {
         int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
         userProfileService.deleteUserProfile(userId);
-        return "redirect:/index";
+        return ResponseEntity.ok(HttpStatus.OK);
     }
 
     @GetMapping("/search") public ResponseEntity<List<UserProfile>> searchUsers(@RequestParam String query) {
@@ -98,7 +98,15 @@ public class UserProfileController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/{userId}/avatar")
+    @GetMapping("/avatar")
+    public ResponseEntity<String> getUserAvatar(@RequestHeader("Authorization") String token) {
+        int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+        String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
+        String avatarLink = userProfileService.getAvatarLink(avatarFileName);
+        return ResponseEntity.ok(avatarLink);
+    }
+
+    @GetMapping("/avatar/{userId}")
     public ResponseEntity<String> getAnyUserAvatarLink(@PathVariable int userId) {
         String avatarFileName = userProfileRepository.findById(userId).get().getAvatar();
         String avatarLink = userProfileService.getAvatarLink(avatarFileName);

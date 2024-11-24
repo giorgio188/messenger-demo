@@ -118,6 +118,11 @@ const chatsSlice = createSlice({
             sending: false,
             files: false
         },
+        chatSearch: {
+            query: '',
+            results: [],
+            isSearching: false
+        },
         unreadMessages: {}, // { chatId: count }
         error: null,
         filter: 'all', // 'all' | 'private' | 'group'
@@ -268,29 +273,21 @@ const chatsSlice = createSlice({
                 state.messageSearch.currentIndex = -1;
             }
         },
-
-        setSearchQuery: (state, action) => {
+        setMessageSearchQuery: (state, action) => {
             state.messageSearch.query = action.payload;
         },
-
-        setSearchResults: (state, action) => {
+        setMessageSearchResults: (state, action) => {
             state.messageSearch.results = action.payload;
-            state.messageSearch.currentIndex = action.payload.length > 0 ? 0 : -1;
+            state.messageSearch.currentIndex = action.payload.length > 0 ? 0 : -1; // Автоматически устанавливаем индекс в 0
         },
-
-        navigateSearchResults: (state, action) => {
-            const direction = action.payload;
-            const { results, currentIndex } = state.messageSearch;
+        navigateMessageSearchResults: (state, action) => {
+            const { index } = action.payload;
+            const { results } = state.messageSearch;
 
             if (results.length === 0) return;
 
-            if (direction === 'next') {
-                state.messageSearch.currentIndex =
-                    currentIndex + 1 >= results.length ? 0 : currentIndex + 1;
-            } else {
-                state.messageSearch.currentIndex =
-                    currentIndex - 1 < 0 ? results.length - 1 : currentIndex - 1;
-            }
+            // Убеждаемся, что индекс находится в пределах допустимых значений
+            state.messageSearch.currentIndex = Math.max(0, Math.min(index, results.length - 1));
         },
 
         toggleRightPanel: (state) => {
@@ -299,6 +296,28 @@ const chatsSlice = createSlice({
 
         setFilter: (state, action) => {
             state.filter = action.payload;
+        },
+        setChatSearchQuery: (state, action) => {
+            state.chatSearch.query = action.payload;
+            if (!action.payload.trim()) {
+                state.chatSearch.results = [];
+            }
+        },
+        setChatSearchResults: (state, action) => {
+            state.chatSearch.results = action.payload;
+        },
+        setChatSearching: (state, action) => {
+            state.chatSearch.isSearching = action.payload;
+        },
+        clearChatSearch: (state) => {
+            state.chatSearch.query = '';
+            state.chatSearch.results = [];
+            state.chatSearch.isSearching = false;
+        },
+
+        addGroupChat: (state, action) => {
+            const newGroupChat = action.payload;
+            state.chats.group.push(newGroupChat);
         }
     },
     extraReducers: (builder) => {
@@ -347,11 +366,16 @@ export const {
     typingStatusChanged,
     fileUploadProgressChanged,
     toggleMessageSearch,
-    setSearchQuery,
-    setSearchResults,
-    navigateSearchResults,
+    setMessageSearchQuery,
+    setMessageSearchResults,
+    navigateMessageSearchResults,
     toggleRightPanel,
-    setFilter
+    setFilter,
+    setChatSearchQuery,
+    setChatSearchResults,
+    setChatSearching,
+    clearChatSearch,
+    addGroupChat
 } = chatsSlice.actions;
 
 export default chatsSlice.reducer;

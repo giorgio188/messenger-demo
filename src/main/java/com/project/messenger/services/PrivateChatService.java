@@ -36,7 +36,11 @@ public class PrivateChatService {
 
         PrivateChat privateChat = privateChatRepository.findPrivateChatBySenderAndReceiver(sender, receiver);
         if (privateChat == null) {
-            return null;
+            PrivateChat privateChat2 = privateChatRepository.findPrivateChatBySenderAndReceiver(receiver, sender);
+            if (privateChat2 == null) {
+                return null;
+            }
+            return mapperForDTO.convertPrivateChatToDto(privateChat2);
         }
         return mapperForDTO.convertPrivateChatToDto(privateChat);
     }

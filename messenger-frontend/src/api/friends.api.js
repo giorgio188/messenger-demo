@@ -12,6 +12,9 @@ export const friendsApi = {
         }
         return apiClient.get(`/friends/${userId}`);
     },
+    getUserFriends: async (userId) => {
+        return apiClient.get(`/friends/${userId}`);
+    },
 
     // Поиск пользователей
     searchUsers: (query) =>

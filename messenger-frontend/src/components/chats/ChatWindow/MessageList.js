@@ -8,15 +8,17 @@ import {
 } from '@mui/material';
 import MessageItem from './MessageItem';
 import { groupMessages } from '../../../utils/messageUtils';
+import { getUserIdFromToken } from '../../../utils/jwtUtils';
 
-const MessageList = ({ onEditMessage, onDeleteMessage }) => {
+const MessageList = () => {
     const messagesEndRef = useRef(null);
     const messagesContainerRef = useRef(null);
-    const lastMessageRef = useRef(null); // Добавляем ref для последнего сообщения
+    const lastMessageRef = useRef(null);
     const { activeChat, loading } = useSelector(state => state.chats);
     const messages = useSelector(state =>
         state.chats.activeChat.messages || []
     );
+    const currentUserId = getUserIdFromToken();
 
     // Проверяем положение скролла
     const isNearBottom = () => {
@@ -67,6 +69,39 @@ const MessageList = ({ onEditMessage, onDeleteMessage }) => {
         const handleResize = () => scrollToBottom(true);
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Проверяем, загружены ли сообщения и прокручиваем вниз
+    useEffect(() => {
+        if (!loading.messages && messages.length > 0) {
+            scrollToBottom(true);
+        }
+    }, [loading.messages, messages]);
+
+    // Обработчик события прокрутки
+    const handleScroll = () => {
+        if (messagesContainerRef.current) {
+            const { scrollHeight, scrollTop, clientHeight } = messagesContainerRef.current;
+            if (scrollHeight - scrollTop === clientHeight) {
+                // Блокируем прокрутку, если достигли конца
+                messagesContainerRef.current.style.overflowY = 'hidden';
+            } else {
+                // Разблокируем прокрутку, если не достигли конца
+                messagesContainerRef.current.style.overflowY = 'auto';
+            }
+        }
+    };
+
+    // Добавляем слушатель события прокрутки
+    useEffect(() => {
+        if (messagesContainerRef.current) {
+            messagesContainerRef.current.addEventListener('scroll', handleScroll);
+        }
+        return () => {
+            if (messagesContainerRef.current) {
+                messagesContainerRef.current.removeEventListener('scroll', handleScroll);
+            }
+        };
     }, []);
 
     if (loading.messages) {
@@ -140,9 +175,8 @@ const MessageList = ({ onEditMessage, onDeleteMessage }) => {
                             <MessageItem
                                 key={message.id}
                                 message={message}
-                                onEdit={onEditMessage}
-                                onDelete={onDeleteMessage}
-                                isLastInGroup={messageIndex === group.length - 1}
+                                isFirstInGroup={messageIndex === 0}
+                                isMine={message.sender.id === currentUserId}
                             />
                         ))}
                     </Box>

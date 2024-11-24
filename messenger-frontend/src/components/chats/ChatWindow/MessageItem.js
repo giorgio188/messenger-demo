@@ -21,15 +21,18 @@ import {
 import { useSelector } from 'react-redux';
 import { formatMessageDate } from '../../../utils/dateFormatter';
 import UserAvatar from '../../common/UserAvatar';
+import { getUserIdFromToken } from '../../../utils/jwtUtils';
 
 const MessageItem = ({
                          message,
                          onEdit,
                          onDelete,
-                         isLastInGroup
+                         isFirstInGroup,
+                         isMine
                      }) => {
-    const currentUser = useSelector(state => state.auth.user);
-    const isOwnMessage = message.sender.id === currentUser?.id;
+    const currentUserId = getUserIdFromToken();
+    const { results, currentIndex } = useSelector(state => state.chats.messageSearch);
+    const isHighlighted = results[currentIndex]?.id === message.id;
 
     const [anchorEl, setAnchorEl] = useState(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -60,41 +63,50 @@ const MessageItem = ({
 
     return (
         <Box
+            id={`message-${message.id}`}
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: isOwnMessage ? 'flex-end' : 'flex-start',
-                mb: isLastInGroup ? 2 : 0.5
+                alignItems: isMine ? 'flex-end' : 'flex-start',
+                mb: isFirstInGroup ? 2 : 0.5,
+                scrollMarginTop: '100px'
             }}
         >
             <Box
                 sx={{
                     display: 'flex',
                     alignItems: 'flex-start',
-                    maxWidth: '70%'
+                    maxWidth: '70%',
+                    flexDirection: isMine ? 'row-reverse' : 'row'
                 }}
             >
-                {!isOwnMessage && isLastInGroup && (
+                {/* Удаляем аватарку собеседника */}
+                {/* {!isMine && isFirstInGroup && (
                     <UserAvatar
                         userId={message.sender.id}
                         username={message.sender.username}
                         size={32}
                         sx={{ mr: 1, mt: 1 }}
                     />
-                )}
+                )} */}
                 <Box
                     sx={{
-                        backgroundColor: isOwnMessage ? 'primary.main' : 'background.paper',
-                        color: isOwnMessage ? 'primary.contrastText' : 'text.primary',
+                        backgroundColor: isHighlighted
+                            ? 'action.selected'
+                            : (isMine ? 'primary.main' : 'background.paper'),
+                        color: isMine ? 'primary.contrastText' : 'text.primary',
                         borderRadius: 2,
                         p: 1,
-                        boxShadow: 1
+                        boxShadow: 1,
+                        transition: 'background-color 0.3s ease',
+                        ml: isMine ? 0 : isFirstInGroup ? '40px' : 0, // Уменьшаем отступ для выравнивания
+                        mr: isMine ? '40px' : 0 // Уменьшаем отступ для выравнивания
                     }}
                 >
-                    {isLastInGroup && !isOwnMessage && (
+                    {isFirstInGroup && !isMine && (
                         <Typography
                             variant="subtitle2"
-                            color={isOwnMessage ? 'inherit' : 'primary'}
+                            color={isMine ? 'inherit' : 'primary'}
                             sx={{ mb: 0.5 }}
                         >
                             {message.sender.nickname || message.sender.username}
@@ -107,27 +119,27 @@ const MessageItem = ({
                         sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            justifyContent: 'flex-end',
+                            justifyContent: 'space-between',
                             mt: 0.5
                         }}
                     >
                         <Typography
                             variant="caption"
-                            color={isOwnMessage ? 'inherit' : 'text.secondary'}
+                            color={isMine ? 'inherit' : 'text.secondary'}
                             sx={{ mr: 0.5 }}
                         >
                             {formatMessageDate(message.timestamp)}
                         </Typography>
-                        {isOwnMessage && (
+                        {isMine && (
                             message.read ? <DoneAllIcon fontSize="small" /> : <DoneIcon fontSize="small" />
+                        )}
+                        {isMine && (
+                            <IconButton size="small" onClick={handleMenuOpen} sx={{ ml: 0.5 }}>
+                                <MoreVertIcon fontSize="small" />
+                            </IconButton>
                         )}
                     </Box>
                 </Box>
-                {isOwnMessage && (
-                    <IconButton size="small" onClick={handleMenuOpen}>
-                        <MoreVertIcon fontSize="small" />
-                    </IconButton>
-                )}
             </Box>
 
             <Menu
