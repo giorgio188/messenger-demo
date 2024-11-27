@@ -41,15 +41,25 @@ public class GroupChatFiles {
     @Column(name = "file_name")
     private String fileName;
 
+    @Column(name = "file_path")
+    private String filePath;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", length = 10)
     private FileType type;
 
-    public GroupChatFiles(GroupChat groupChat, LocalDateTime sentAt, UserProfile sender, String fileName, FileType type) {
+    @Column(name = "size")
+    private int size;
+
+    public GroupChatFiles(GroupChat groupChat, UserProfile sender,
+                          LocalDateTime sentAt, String fileName,
+                          String filePath, FileType type, int size) {
         this.groupChat = groupChat;
-        this.sentAt = sentAt;
         this.sender = sender;
+        this.sentAt = sentAt;
         this.fileName = fileName;
+        this.filePath = filePath;
         this.type = type;
+        this.size = size;
     }
 }

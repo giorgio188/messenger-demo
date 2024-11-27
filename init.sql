@@ -42,7 +42,9 @@ create table private_chat_files
     receiver_id    int references user_profile (id),
     sent_at         timestamp,
     file_name       varchar,
-    type            varchar(10)
+    file_path varchar,
+    type            varchar(10),
+    size int
 );
 create table group_chat
 (
@@ -67,7 +69,9 @@ create table group_chat_files
     sender_id     int references user_profile (id),
     sent_at       timestamp,
     file_name     varchar,
-    type          varchar(10)
+    file_path varchar,
+    type          varchar(10),
+    size int
 );
 create table group_chat_members
 (

@@ -49,10 +49,11 @@ public class PrivateChatFileService {
                 : privateChat.getSender();
         FileType fileType = FileType.getByContentType(file.getContentType())
                 .orElseThrow(() -> new RuntimeException("Неподдерживаемый формат файла: " + file.getContentType()));
-
+        String fileName = file.getOriginalFilename();
+        int size = (int) file.getSize();
         String filePath = s3Service.uploadFile(file, FILE_DIRECTORY);
         PrivateChatFiles privateChatFiles = new PrivateChatFiles(privateChat, sender, receiver,
-                LocalDateTime.now(), filePath, fileType);
+                LocalDateTime.now(), fileName, filePath, fileType, size);
         FileType.getByContentType(file.getContentType());
         PrivateChatFiles savedFile = privateChatFileRepository.save(privateChatFiles);
 

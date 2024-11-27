@@ -41,17 +41,14 @@ public class GroupChatFileService {
             throws IOException {
         UserProfile sender = userProfileService.getUserProfile(senderId);
         GroupChat groupChat = modelMapper.map(groupChatService.getGroupChat(groupChatId, senderId), GroupChat.class);
-        String fileName = s3Service.uploadFile(file, FILE_DIRECTORY);
+        String filePath = s3Service.uploadFile(file, FILE_DIRECTORY);
         FileType fileType = FileType.getByContentType(file.getContentType())
                 .orElseThrow(() -> new RuntimeException("Неподдерживаемый формат файла: " + file.getContentType()));
-
+        String fileName = file.getOriginalFilename();
+        int size = (int) file.getSize();
         GroupChatFiles newFile = new GroupChatFiles(
-                groupChat,
-                LocalDateTime.now(),
-                sender,
-                fileName,
-                fileType
-        );
+                groupChat, sender, LocalDateTime.now(),
+                fileName, filePath, fileType, size);
         GroupChatFiles savedFile = groupChatFileRepository.save(newFile);
 
         // Создаем уведомление о новом файле
