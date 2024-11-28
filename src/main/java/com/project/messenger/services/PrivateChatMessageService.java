@@ -115,22 +115,24 @@ public class PrivateChatMessageService {
 
 
     @Transactional
-    public PrivateChatMessage editPrivateMessage(int messageId, String editedMessage) {
+    public PrivateChatMessageDTO editPrivateMessage(int messageId, String editedMessage) {
         Optional<PrivateChatMessage> privateChatMessage = privateChatMessageRepository.findById(messageId);
         if (privateChatMessage.isPresent()) {
-
             PrivateChatMessage message = privateChatMessage.get();
             PrivateChat chat = message.getPrivateChat();
             String encryptedEditedMessage = encryptionService.encrypt(editedMessage);
             message.setMessage(encryptedEditedMessage);
             message.setStatus(MessageStatus.EDITED);
-            PrivateChatMessage updatedMessage = privateChatMessageRepository.save(message);
-            updatedMessage.setMessage(editedMessage);
+            privateChatMessageRepository.save(message);
+
+            PrivateChatMessageDTO messageDTO = mapperForDTO.convertPrivateMessageToDTO(message);
+            messageDTO.setMessage(editedMessage);
+
             Map<String, Object> editNotification = new HashMap<>();
 
             editNotification.put("type", "MESSAGE_EDITED");
             editNotification.put("messageId", messageId);
-            editNotification.put("newMessage", editedMessage);
+            editNotification.put("newMessage", messageDTO);
             editNotification.put("chatId", chat.getId());
             editNotification.put("status", MessageStatus.EDITED);
 
@@ -146,7 +148,7 @@ public class PrivateChatMessageService {
                     "/queue/private-messages/" + chat.getId(),
                     editNotification
             );
-            return updatedMessage;
+            return messageDTO;
         } else {
             throw new EntityNotFoundException("Message not found with messageId: " + messageId);
         }
