@@ -15,6 +15,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.Map;
 
@@ -124,6 +126,30 @@ public class GroupChatController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/{groupChatId}/avatar")
+    public ResponseEntity<String> getGroupChatAvatar(@PathVariable int groupChatId) {
+        return ResponseEntity.ok(groupChatService.getGroupChatAvatar(groupChatId));
+    }
+
+    @PatchMapping("/{groupChatId}/avatar")
+    public ResponseEntity<?> uploadGroupChatAvatar(@RequestHeader("Authorization") String token,
+                                                   @PathVariable int groupChatId,
+                                                   @RequestParam MultipartFile file) {
+        try {
+            int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
+            groupChatService.setAvatar(userId, groupChatId, file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{groupChatId}/avatar")
+    public void deleteGroupChatAvatar(@RequestHeader("Authorization") String token,
+                                                   @PathVariable int groupChatId) {
+        groupChatService.deleteAvatar(groupChatId, jwtUtil.extractUserId(token.replace("Bearer ", "")));
+    }
+
     @MessageMapping("/group.enter")
     public void handleChatEnter(@Payload Map<String, Object> payload,
                                 SimpMessageHeaderAccessor headerAccessor) {
@@ -139,5 +165,7 @@ public class GroupChatController {
             }
         }
     }
+
+
 
 }
