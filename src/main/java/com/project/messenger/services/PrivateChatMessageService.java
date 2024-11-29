@@ -129,23 +129,17 @@ public class PrivateChatMessageService {
             messageDTO.setMessage(editedMessage);
 
             Map<String, Object> editNotification = new HashMap<>();
-
             editNotification.put("type", "MESSAGE_EDITED");
             editNotification.put("messageId", messageId);
-            editNotification.put("newMessage", messageDTO);
+            editNotification.put("newMessage", editedMessage);
             editNotification.put("chatId", chat.getId());
             editNotification.put("status", MessageStatus.EDITED);
+            editNotification.put("timestamp", LocalDateTime.now());
+            editNotification.put("senderId", message.getSender().getId());
 
             // Уведомляем обоих участников чата об изменении сообщения
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(chat.getSender().getId()),
-                    "/queue/private-messages/" + chat.getId(),
-                    editNotification
-            );
-
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(chat.getReceiver().getId()),
-                    "/queue/private-messages/" + chat.getId(),
+            messagingTemplate.convertAndSend(
+                    "/topic/private-message." + chat.getId(),
                     editNotification
             );
             return messageDTO;

@@ -128,10 +128,9 @@ public class GroupChatMessageService {
             editNotification.put("chatId", chatId);
             editNotification.put("timestamp", LocalDateTime.now());
             editNotification.put("senderId", message.getSender().getId());
-
-            // Изменен путь с group-chat на group-message
+            // Отправляем уведомление всем участникам группового чата
             messagingTemplate.convertAndSend(
-                    "/topic/group-message/" + chatId,
+                    "/topic/group-message." + chatId,
                     editNotification
             );
             return messageDTO;
