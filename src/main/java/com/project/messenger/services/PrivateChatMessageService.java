@@ -95,17 +95,12 @@ public class PrivateChatMessageService {
             Map<String, Object> deleteNotification = new HashMap<>();
             deleteNotification.put("type", "MESSAGE_DELETED");
             deleteNotification.put("messageId", messageId);
+            deleteNotification.put("chatId", chat.getId());
+            deleteNotification.put("timestamp", LocalDateTime.now());
 
             // Уведомляем обоих участников чата об удалении сообщения
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(chat.getSender().getId()),
-                    "/queue/private-messages/" + chat.getId(),
-                    deleteNotification
-            );
-
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(chat.getReceiver().getId()),
-                    "/queue/private-messages/" + chat.getId(),
+            messagingTemplate.convertAndSend(
+                    "/topic/private-message." + chat.getId(),
                     deleteNotification
             );
         } else {

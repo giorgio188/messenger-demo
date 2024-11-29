@@ -95,9 +95,9 @@ public class GroupChatMessageService {
             deleteNotification.put("chatId", chatId);
             deleteNotification.put("timestamp", LocalDateTime.now());
 
-            // Изменен путь с group-chat на group-message
+            // Отправляем уведомление всем участникам группового чата
             messagingTemplate.convertAndSend(
-                    "/topic/group-message/" + chatId,
+                    "/topic/group-message." + chatId,
                     deleteNotification
             );
 
