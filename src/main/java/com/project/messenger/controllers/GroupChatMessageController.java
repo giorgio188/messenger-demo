@@ -36,7 +36,6 @@ public class GroupChatMessageController {
         return ResponseEntity.ok(messages);
     }
 
-    // WebSocket endpoint для отправки сообщения
     @MessageMapping("/group.send")
     public void handleGroupMessage(@Payload Map<String, Object> payload,
                                    SimpMessageHeaderAccessor headerAccessor) {
@@ -54,7 +53,6 @@ public class GroupChatMessageController {
         }
     }
 
-    // WebSocket endpoint для удаления сообщения
     @MessageMapping("/group.delete")
     public void handleDeleteMessage(@Payload Map<String, Object> payload,
                                     SimpMessageHeaderAccessor headerAccessor) {
@@ -69,7 +67,6 @@ public class GroupChatMessageController {
         }
     }
 
-    // WebSocket endpoint для редактирования сообщения
     @MessageMapping("/group.edit")
     public void handleEditMessage(@Payload Map<String, Object> payload,
                                   SimpMessageHeaderAccessor headerAccessor) {
