@@ -112,13 +112,13 @@ public class UserProfileController {
         String avatarLink = userProfileService.getAvatarLink(avatarFileName);
         return ResponseEntity.ok(avatarLink);
     }
+    // WebSocket endpoint для обработки подключения пользователя
     @MessageMapping("/user.connect")
     public void handleUserConnect(SimpMessageHeaderAccessor headerAccessor) {
         String token = headerAccessor.getFirstNativeHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
             int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
             userProfileService.setUserOnlineStatus(userId, ProfileStatus.ONLINE);
-            System.out.println("User connected: " + userId); // Логирование для отладки
         }
     }
 
@@ -129,7 +129,6 @@ public class UserProfileController {
         if (token != null && token.startsWith("Bearer ")) {
             int userId = jwtUtil.extractUserId(token.replace("Bearer ", ""));
             userProfileService.setUserOnlineStatus(userId, ProfileStatus.OFFLINE);
-            System.out.println("User disconnected: " + userId); // Логирование для отладки
         }
     }
 

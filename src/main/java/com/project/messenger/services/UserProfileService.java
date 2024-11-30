@@ -106,7 +106,7 @@ public class UserProfileService {
         if (userProfile.isPresent()) {
             UserProfile user = userProfile.get();
             user.setStatus(status);
-            userProfileRepository.save(user);
+            UserProfile savedProfile = userProfileRepository.save(user);
 
             // Создаем уведомление о смене статуса
             Map<String, Object> statusNotification = new HashMap<>();
