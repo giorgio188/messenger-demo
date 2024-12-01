@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -29,6 +30,9 @@ public class GroupChatService {
     private final UserProfileRepository userProfileRepository;
     private final GroupChatMembersRepository groupChatMembersRepository;
     private final MapperForDTO mapperForDTO;
+    private final String AVATAR_DIRECTORY = "groupchat-avatar";
+    private final S3Service s3Service;
+
 
     @Transactional
     public void addUser(int group, int userId, Roles role) {
@@ -141,6 +145,31 @@ public class GroupChatService {
         } else throw new AccessDeniedException("User is not an admin of this chat");
     }
 
+    @Transactional
+    public void setAvatar(int userId, int groupChatId, MultipartFile file) {
+        if (isAdmin(userId, groupChatId)) {
+            GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+            String avatar = s3Service.uploadFile(file, AVATAR_DIRECTORY);
+            groupChat.setAvatar(avatar);
+            groupChatRepository.save(groupChat);
+        } else throw new AccessDeniedException("User is not an admin of this chat");
+    }
+
+    @Transactional
+    public void deleteAvatar(int userId, int groupChatId) {
+        if (isAdmin(groupChatId, userId)) {
+            GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+            groupChat.setAvatar(null);
+            groupChatRepository.save(groupChat);
+        } else throw new AccessDeniedException("User is not an admin of this chat");
+    }
+
+    public String getGroupChatAvatar(int groupChatId) {
+        GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
+        String avatarName = groupChat.getAvatar();
+        return s3Service.getFileUrl(avatarName);
+    }
+
     private boolean isAdmin(int groupChatId, int userId) {
         GroupChat groupChat = groupChatRepository.findById(groupChatId).get();
         GroupChatMembers admin = groupChatMembersRepository.findByGroupChatAndMember(groupChat,
@@ -158,8 +187,5 @@ public class GroupChatService {
             return true;
         } else return false;
     }
-
-
-
 }
 

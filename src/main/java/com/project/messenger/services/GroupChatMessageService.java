@@ -95,9 +95,9 @@ public class GroupChatMessageService {
             deleteNotification.put("chatId", chatId);
             deleteNotification.put("timestamp", LocalDateTime.now());
 
-            // Изменен путь с group-chat на group-message
+            // Отправляем уведомление всем участникам группового чата
             messagingTemplate.convertAndSend(
-                    "/topic/group-message/" + chatId,
+                    "/topic/group-message." + chatId,
                     deleteNotification
             );
 
@@ -107,7 +107,7 @@ public class GroupChatMessageService {
     }
 
     @Transactional
-    public GroupChatMessage editGroupMessage(int messageId, String editedMessage) {
+    public GroupChatMessageDTO editGroupMessage(int messageId, String editedMessage) {
         Optional<GroupChatMessage> groupChatMessage = groupchatMessageRepository.findById(messageId);
         if (groupChatMessage.isPresent()) {
 
@@ -116,9 +116,10 @@ public class GroupChatMessageService {
             String encryptedEditedMessage = encryptionService.encrypt(editedMessage);
             message.setMessage(encryptedEditedMessage);
             message.setStatus(MessageStatus.EDITED);
-            GroupChatMessage updatedMessage = groupchatMessageRepository.save(message);
-            updatedMessage.setMessage(editedMessage);
+            groupchatMessageRepository.save(message);
 
+            GroupChatMessageDTO messageDTO = mapperForDTO.convertGroupChatMessageToDTO(message);
+            messageDTO.setMessage(editedMessage);
             Map<String, Object> editNotification = new HashMap<>();
             editNotification.put("type", "MESSAGE_EDITED");
             editNotification.put("messageId", messageId);
@@ -127,13 +128,12 @@ public class GroupChatMessageService {
             editNotification.put("chatId", chatId);
             editNotification.put("timestamp", LocalDateTime.now());
             editNotification.put("senderId", message.getSender().getId());
-
-            // Изменен путь с group-chat на group-message
+            // Отправляем уведомление всем участникам группового чата
             messagingTemplate.convertAndSend(
-                    "/topic/group-message/" + chatId,
+                    "/topic/group-message." + chatId,
                     editNotification
             );
-            return updatedMessage;
+            return messageDTO;
         }
         else {
             throw new EntityNotFoundException("Message not found with messageId: " + messageId);

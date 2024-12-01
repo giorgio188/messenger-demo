@@ -47,16 +47,27 @@ public class PrivateChatFiles {
     @Column(name = "file_name")
     private String fileName;
 
+    @Column(name = "file_path")
+    private String filePath;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", length = 10)
     private FileType type;
 
-    public PrivateChatFiles(PrivateChat privateChat, UserProfile sender, UserProfile receiver, LocalDateTime sentAt, String fileName, FileType type) {
+
+    @Column(name = "size")
+    private int size;
+
+    public PrivateChatFiles(PrivateChat privateChat, UserProfile sender, UserProfile receiver,
+                            LocalDateTime sentAt, String fileName, String filePath,
+                            FileType type, int size) {
         this.privateChat = privateChat;
         this.sender = sender;
         this.receiver = receiver;
         this.sentAt = sentAt;
         this.fileName = fileName;
+        this.filePath = filePath;
         this.type = type;
+        this.size = size;
     }
 }

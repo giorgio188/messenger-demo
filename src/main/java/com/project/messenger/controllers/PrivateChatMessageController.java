@@ -45,13 +45,11 @@ public class PrivateChatMessageController {
             try {
                 privateChatMessageService.sendMessage(senderId, chatId, message);
             } catch (Exception e) {
-                // Обработка ошибок
                 throw new RuntimeException("Failed to send message: " + e.getMessage());
             }
         }
     }
 
-    // WebSocket endpoint для удаления сообщения
     @MessageMapping("/privateMessage.delete")
     public void handleDeleteMessage(@Payload Map<String, Object> payload,
                                     SimpMessageHeaderAccessor headerAccessor) {
@@ -66,7 +64,6 @@ public class PrivateChatMessageController {
         }
     }
 
-    // WebSocket endpoint для редактирования сообщения
     @MessageMapping("/privateMessage.edit")
     public void handleEditMessage(@Payload Map<String, Object> payload,
                                   SimpMessageHeaderAccessor headerAccessor) {

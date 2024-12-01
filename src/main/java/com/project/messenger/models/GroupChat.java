@@ -41,6 +41,10 @@ public class GroupChat{
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
+
+    @Column(name = "avatar")
+    private String avatar;
+
     @OneToMany(mappedBy = "groupChat", fetch = FetchType.LAZY)
     @JsonBackReference
     private List<GroupChatMessage> groupChatMessages;

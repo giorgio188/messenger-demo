@@ -95,17 +95,12 @@ public class PrivateChatMessageService {
             Map<String, Object> deleteNotification = new HashMap<>();
             deleteNotification.put("type", "MESSAGE_DELETED");
             deleteNotification.put("messageId", messageId);
+            deleteNotification.put("chatId", chat.getId());
+            deleteNotification.put("timestamp", LocalDateTime.now());
 
             // Уведомляем обоих участников чата об удалении сообщения
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(chat.getSender().getId()),
-                    "/queue/private-messages/" + chat.getId(),
-                    deleteNotification
-            );
-
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(chat.getReceiver().getId()),
-                    "/queue/private-messages/" + chat.getId(),
+            messagingTemplate.convertAndSend(
+                    "/topic/private-message." + chat.getId(),
                     deleteNotification
             );
         } else {
@@ -115,38 +110,34 @@ public class PrivateChatMessageService {
 
 
     @Transactional
-    public PrivateChatMessage editPrivateMessage(int messageId, String editedMessage) {
+    public PrivateChatMessageDTO editPrivateMessage(int messageId, String editedMessage) {
         Optional<PrivateChatMessage> privateChatMessage = privateChatMessageRepository.findById(messageId);
         if (privateChatMessage.isPresent()) {
-
             PrivateChatMessage message = privateChatMessage.get();
             PrivateChat chat = message.getPrivateChat();
             String encryptedEditedMessage = encryptionService.encrypt(editedMessage);
             message.setMessage(encryptedEditedMessage);
             message.setStatus(MessageStatus.EDITED);
-            PrivateChatMessage updatedMessage = privateChatMessageRepository.save(message);
-            updatedMessage.setMessage(editedMessage);
-            Map<String, Object> editNotification = new HashMap<>();
+            privateChatMessageRepository.save(message);
 
+            PrivateChatMessageDTO messageDTO = mapperForDTO.convertPrivateMessageToDTO(message);
+            messageDTO.setMessage(editedMessage);
+
+            Map<String, Object> editNotification = new HashMap<>();
             editNotification.put("type", "MESSAGE_EDITED");
             editNotification.put("messageId", messageId);
             editNotification.put("newMessage", editedMessage);
             editNotification.put("chatId", chat.getId());
             editNotification.put("status", MessageStatus.EDITED);
+            editNotification.put("timestamp", LocalDateTime.now());
+            editNotification.put("senderId", message.getSender().getId());
 
             // Уведомляем обоих участников чата об изменении сообщения
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(chat.getSender().getId()),
-                    "/queue/private-messages/" + chat.getId(),
+            messagingTemplate.convertAndSend(
+                    "/topic/private-message." + chat.getId(),
                     editNotification
             );
-
-            messagingTemplate.convertAndSendToUser(
-                    String.valueOf(chat.getReceiver().getId()),
-                    "/queue/private-messages/" + chat.getId(),
-                    editNotification
-            );
-            return updatedMessage;
+            return messageDTO;
         } else {
             throw new EntityNotFoundException("Message not found with messageId: " + messageId);
         }
