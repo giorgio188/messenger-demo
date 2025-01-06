@@ -2,6 +2,7 @@ package com.project.messenger.controllers;
 
 import com.project.messenger.dto.PasswordDTO;
 import com.project.messenger.dto.UserProfileDTO;
+import com.project.messenger.dto.UserProfilePageDTO;
 import com.project.messenger.models.UserProfile;
 import com.project.messenger.models.enums.ProfileStatus;
 import com.project.messenger.repositories.UserProfileRepository;
@@ -33,9 +34,9 @@ public class UserProfileController {
     private final RegistrationService registrationService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserProfile> getUserProfile(@PathVariable int userId) {
+    public ResponseEntity<UserProfilePageDTO> getUserProfile(@PathVariable int userId) {
         UserProfile userProfile = userProfileService.getUserProfile(userId);
-        return ResponseEntity.ok(userProfile);
+        return ResponseEntity.ok(modelMapper.map(userProfile, UserProfilePageDTO.class));
     }
 
     @GetMapping("/profile")

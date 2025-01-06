@@ -45,11 +45,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         return converter;
     }
 
-//    @Bean
-//    public MappingJackson2MessageConverter messageConverter() {
-//        return new MappingJackson2MessageConverter();
-//    }
-//
-
 }
 

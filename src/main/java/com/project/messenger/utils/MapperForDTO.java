@@ -79,5 +79,14 @@ public class MapperForDTO {
         return dto;
     }
 
+    public UserProfilePageDTO convertUserToProfilePageDTO(UserProfile userProfile) {
+        UserProfilePageDTO dto = new UserProfilePageDTO();
+        dto.setUsername(userProfile.getUsername());
+        dto.setNickname(userProfile.getNickname());
+        dto.setEmail(userProfile.getEmail());
+        dto.setPhoneNumber(userProfile.getPhoneNumber());
+        dto.setAvatar(userProfile.getAvatar());
+        return dto;
+    }
 
 }
