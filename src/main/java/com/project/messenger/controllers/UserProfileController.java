@@ -112,7 +112,7 @@ public class UserProfileController {
         String avatarLink = userProfileService.getAvatarLink(avatarFileName);
         return ResponseEntity.ok(avatarLink);
     }
-    // WebSocket endpoint для обработки подключения пользователя
+
     @MessageMapping("/user.connect")
     public void handleUserConnect(SimpMessageHeaderAccessor headerAccessor) {
         String token = headerAccessor.getFirstNativeHeader("Authorization");
@@ -122,7 +122,6 @@ public class UserProfileController {
         }
     }
 
-    // WebSocket endpoint для обработки отключения пользователя
     @MessageMapping("/user.disconnect")
     public void handleUserDisconnect(SimpMessageHeaderAccessor headerAccessor) {
         String token = headerAccessor.getFirstNativeHeader("Authorization");
