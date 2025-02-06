@@ -1,25 +1,20 @@
 package com.project.messenger.controllers;
 
-import com.project.messenger.dto.MultipartFileWrapper;
 import com.project.messenger.models.GroupChat;
 import com.project.messenger.models.GroupChatFiles;
 import com.project.messenger.security.JWTUtil;
 import com.project.messenger.services.GroupChatFileService;
-import com.project.messenger.services.GroupChatMessageService;
 import com.project.messenger.services.GroupChatService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
+
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
-import java.util.Map;
 
 @RequestMapping("api/group-file")
 @RestController
