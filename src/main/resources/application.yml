@@ -35,3 +35,7 @@ aws:
     static: ${AWS_REGION}
   s3:
     bucket: ${AWS_BUCKET}
+
+encryption:
+  password: ${ENCRYPTION_PASSWORD}
+  salt: ${ENCRYPTION_SALT}

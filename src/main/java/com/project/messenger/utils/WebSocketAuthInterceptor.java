@@ -22,7 +22,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             UsernamePasswordAuthenticationToken authentication =
                     (UsernamePasswordAuthenticationToken) accessor.getUser();
             if (authentication != null) {
-                // Предполагаем, что у нас есть UserProfile в Principal
                 String userId = authentication.getName();
                 accessor.setSessionAttributes(Map.of("userId", userId));
             }
